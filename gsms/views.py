@@ -1,4 +1,5 @@
 import os
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -10,7 +11,8 @@ from django.contrib.auth.decorators import user_passes_test
 from .forms import EmployeeRegistrationForm, ProductForm
 from .models import Category, Product, Supplier
 from django.http import JsonResponse
-
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 # Helper function to check if user is admin
 def is_admin(user):
@@ -349,3 +351,100 @@ def get_products_by_category(request, category_id):
         return JsonResponse({'products': product_list})
     except Exception as e:
         return JsonResponse({'error': f'Failed to fetch products: {str(e)}'}, status=400)
+    
+@require_http_methods(["GET"])
+def get_product(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+        product_data = {
+            'id': product.id,
+            'name': product.name,
+            'category': {
+                'id': product.category.category_id,
+                'name': product.category.name
+            },
+            'price': product.price,
+            'stock': product.stock,
+            'quantity': product.quantity,
+            'expiry_date': product.expiry_date.strftime('%Y-%m-%d') if product.expiry_date else None
+        }
+        return JsonResponse(product_data)
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_product(request, product_id):
+    try:
+        data = json.loads(request.body)
+        product = Product.objects.get(id=product_id)
+        
+        # Update product fields
+        product.name = data.get('name', product.name)
+        product.price = data.get('price', product.price)
+        product.stock = data.get('stock', product.stock)
+        product.quantity = data.get('quantity', product.quantity)
+        
+        # Update category if provided
+        if 'category' in data:
+            category_id = data['category']
+            category = Category.objects.get(category_id=category_id)
+            product.category = category
+        
+        # Update expiry date if provided
+        if 'expiry_date' in data and data['expiry_date']:
+            product.expiry_date = data['expiry_date']
+        
+        product.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Product updated successfully'
+        })
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+    except Category.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Category not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def delete_product(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+        product_name = product.name
+        product.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Product "{product_name}" deleted successfully'
+        })
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+def get_all_products(request):
+    products = Product.objects.all().select_related('category')
+    products_data = []
+    
+    for product in products:
+        product_data = {
+            'id': product.id,
+            'name': product.name,
+            'category': {
+                'id': product.category.category_id,
+                'name': product.category.name
+            },
+            'quantity': product.quantity,
+            'price': float(product.price),
+            'stock': product.stock,
+            'expiry_date': product.expiry_date.isoformat() if product.expiry_date else None,
+            'status': 'out-of-stock' if product.stock == 0 else 'low-stock' if product.stock < 10 else 'in-stock'
+        }
+        products_data.append(product_data)
+    
+    return JsonResponse({'products': products_data})

@@ -27,5 +27,9 @@ urlpatterns = [
     path('edit-category/<int:category_id>/', views.edit_category, name='edit_category'),
     path('delete-category/<int:category_id>/', views.delete_category, name='delete_category'),
     path('api/products/<int:category_id>/', views.get_products_by_category, name='get_products_by_category'),
+    path('api/product/<int:product_id>/', views.get_product, name='get_product'),
+    path('api/product/<int:product_id>/update/', views.update_product, name='update_product'),
+    path('api/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
+    path('api/products/all/', views.get_all_products, name='get_all_products'),
     # Add other URLs as needed
 ]
