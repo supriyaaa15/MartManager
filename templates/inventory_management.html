@@ -833,14 +833,14 @@ body {
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search products to edit...">
                 </div>
-                <div class="filter-dropdown">
+                {% comment %} <div class="filter-dropdown">
                     <select>
                         <option value="">Filter by Category</option>
                         {% for category in categories %}
                         <option value="{{ category.category_id }}">{{ category.name }}</option>
                         {% endfor %}
                     </select>
-                </div>
+                </div> {% endcomment %}
             </div>
             
             <table class="products-table">
@@ -962,7 +962,7 @@ body {
     // Edit Products Tab Search and Sort
     const editProductSearchInput = document.querySelector('#edit-product .search-bar input');
     const editProductSortSelect = document.querySelector('#edit-product .filter-dropdown select');
-    const editProductCategoryFilter = document.querySelector('#edit-product .filter-dropdown select');
+    {% comment %} const editProductCategoryFilter = document.querySelector('#edit-product .filter-dropdown select'); {% endcomment %}
     
     
 
