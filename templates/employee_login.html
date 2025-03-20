@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Login & Register</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #e8f5e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: 0.5s ease-in-out;
+            position: relative;
+        }
+
+        h2 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #66bb6a;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #388e3c;
+        }
+
+        .toggle-link {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #2e7d32;
+            cursor: pointer;
+            display: block;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+        
+        /* Added styles for messages */
+        .messages {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        /* Form label styling */
+        label {
+            display: block;
+            text-align: left;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #2e7d32;
+        }
+        
+        /* Style Django form inputs */
+        input[type="text"], 
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #66bb6a;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        /* Home button styles */
+        .home-btn {
+            background-color: #2e7d32;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: inline-block;
+            transition: 0.3s;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .home-btn:hover {
+            background-color: #1b5e20;
+        }
+        
+        .btn-container {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Back to homepage button -->
+        <div class="btn-container">
+            <a href="{% url 'homepage' %}" class="home-btn">
+                &larr; Back to Homepage
+            </a>
+        </div>
+    
+        <!-- Login Form -->
+        <div id="login-form">
+            <h2>
+                {% if selected_role == 'Admin' %}
+                    Admin Login
+                {% else %}
+                    Employee Login
+                {% endif %}
+            </h2>
+            
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="post" action="{% if selected_role == 'Admin' %}{% url 'admin_login' %}{% else %}{% url 'login' %}{% endif %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}">Password</label>
+                    {{ form.password }}
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            
+            {% if selected_role != 'Admin' %}
+            <span class="toggle-link" onclick="toggleForm()">New Employee? Register Here</span>
+            {% endif %}
+        </div>
+
+        <!-- Register Form - This is just UI and doesn't actually work -->
+        <!-- For proper registration, redirect to the register_user URL -->
+        <div id="register-form" class="hidden">
+            <h2>Employee Register</h2>
+            <p style="color: #721c24; margin-bottom: 10px;">Note: Registration must be done by an admin. Please contact your administrator.</p>
+            <span class="toggle-link" onclick="toggleForm()">Back to Login</span>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm() {
+            document.getElementById("login-form").classList.toggle("hidden");
+            document.getElementById("register-form").classList.toggle("hidden");
+        }
+    </script>
+
+</body>
+</html>

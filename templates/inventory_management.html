@@ -1,0 +1,1285 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - MartManager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- CSS styles will be added here -->
+    <style>
+        /* Root Variables */
+:root {
+    --primary-color: #2e7d32;
+    --secondary-color: #4caf50;
+    --accent-color: #1b5e20;
+    --background-color: #e8f5e9;
+    --text-color: #333;
+    --white: #fff;
+    --danger: #f44336;
+    --danger-dark: #d32f2f;
+    --warning: #ff9800;
+    --success: #4caf50;
+    --gray-light: #f5f5f5;
+    --gray: #e0e0e0;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Navbar Styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--primary-color);
+    padding: 1rem 2rem;
+    color: var(--white);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo i {
+    margin-right: 10px;
+    font-size: 1.8rem;
+}
+
+.nav-user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-greeting {
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.logout-btn {
+    background-color: var(--danger);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.logout-btn:hover {
+    background-color: var(--danger-dark);
+    transform: translateY(-2px);
+}
+
+.dashboard-btn {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.dashboard-btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Main Content Styles */
+.main-content {
+    padding: 2rem;
+    min-height: calc(100vh - 160px);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+    position: relative;
+}
+
+.page-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+/* Tab Navigation */
+.inventory-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--gray);
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.tab-button:hover {
+    color: var(--primary-color);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Categories View */
+.categories-view {
+    display: none;
+}
+
+.categories-view.active {
+    display: block;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
+.category-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.category-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.category-count {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Products Section */
+.products-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.products-section.active {
+    display: block;
+}
+
+.products-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.back-to-categories {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-right: 1.5rem;
+    transition: var(--transition);
+}
+
+.back-to-categories:hover {
+    transform: translateX(-5px);
+}
+
+.back-to-categories i {
+    margin-right: 0.5rem;
+}
+
+.selected-category {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Search and Filter */
+.search-filter {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-bar {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    background-color: var(--white);
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    box-shadow: var(--shadow);
+}
+
+.search-bar i {
+    color: #666;
+    margin-right: 0.5rem;
+}
+
+.search-bar input {
+    border: none;
+    flex: 1;
+    padding: 0.3rem 0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.filter-dropdown select {
+    padding: 0.8rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--white);
+    font-size: 1rem;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    outline: none;
+    min-width: 180px;
+}
+
+/* Products Table */
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin: 20px 0;
+}
+
+.products-table th,
+.products-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray);
+}
+
+.products-table th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: 600;
+}
+
+.products-table tbody tr:hover {
+    background-color: var(--gray-light);
+}
+
+.products-table tr:last-child td {
+    border-bottom: none;
+}
+
+.stock-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.stock-status.in-stock {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.stock-status.low-stock {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: var(--warning);
+}
+
+.stock-status.out-of-stock {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-button {
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: var(--transition);
+}
+
+.edit-button {
+    background-color: #2196f3;
+    color: var(--white);
+}
+
+.edit-button:hover {
+    background-color: #1976d2;
+}
+
+.delete-button {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.delete-button:hover {
+    background-color: var(--danger-dark);
+}
+
+.action-button i {
+    margin-right: 0.3rem;
+}
+
+/* Form Styles */
+.product-form {
+    background-color: var(--white);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-header h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    font-size: 1rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+.form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.form-button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.cancel-button {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.cancel-button:hover {
+    background-color: #d0d0d0;
+}
+
+.save-button {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.save-button:hover {
+    background-color: var(--accent-color);
+}
+
+/* Helper Classes */
+.text-center {
+    text-align: center;
+}
+
+/* Footer Styles */
+.footer {
+    background: var(--primary-color);
+    color: var(--white);
+    padding: 1.5rem 2rem;
+    text-align: center;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: 1rem;
+}
+
+.footer-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.footer-section p {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: var(--white);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.footer-section a:hover {
+    color: #a5d6a7;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.social-icons a:hover {
+    background: var(--secondary-color);
+    transform: translateY(-3px);
+}
+
+.copyright {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .logo {
+        margin-bottom: 1rem;
+    }
+    
+    .nav-user-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .inventory-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-button {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .social-icons {
+        justify-content: center;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <!-- Navbar -->
+<div class="navbar">
+    <div class="logo">
+        <i class="fas fa-shopping-cart"></i>
+        <span>MartManager</span>
+    </div>
+    <div class="nav-user-info">
+        <span class="user-greeting">Welcome, {{ request.user.username }}</span>
+        <a href="{% url 'dashboard' %}" class="dashboard-btn">
+            <i class="fas fa-bars"></i> Dashboard
+        </a>
+        <a href="{% url 'logout' %}" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Inventory Management</h1>
+            <p>View and manage your store's inventory</p>
+        </div>
+
+        {% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<style>
+    .messages {
+        margin-bottom: 20px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .alert-success {
+        background-color: #dff0d8;
+        color: #3c763d;
+        border: 1px solid #d6e9c6;
+    }
+    .alert-danger {
+        background-color: #f2dede;
+        color: #a94442;
+        border: 1px solid #ebccd1;
+    }
+    .alert-info {
+        background-color: #d9edf7;
+        color: #31708f;
+        border: 1px solid #bce8f1;
+    }
+</style>
+{% endif %}
+        
+        <!-- Tab Navigation -->
+        <div class="inventory-tabs">
+            <button class="tab-button active" data-tab="view-stock">View Stock</button>
+            <button class="tab-button" data-tab="add-product">Add Product</button>
+            <button class="tab-button" data-tab="edit-product">Edit Products</button>
+        </div>
+        
+        <!-- View Stock Tab -->
+        <div id="view-stock" class="tab-content active">
+            <!-- Categories View -->
+            <div class="categories-view active">
+                <div class="categories-grid">
+                    {% for category in categories %}
+                    <div class="category-card" data-category-id="{{ category.category_id }}">
+                        <div class="category-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h3 class="category-name">{{ category.name }}</h3>
+                        <p class="category-count">{{ category.products.count }} Products</p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center">
+                        <p>No categories available. Please add categories first.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Products View (Initially Hidden) -->
+            <div class="products-section">
+                <div class="products-header">
+                    <div class="back-to-categories">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Categories</span>
+                    </div>
+                    <h2 class="selected-category">Category Name</h2>
+                </div>
+                
+                <div class="search-filter">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search products...">
+                    </div>
+                    <div class="filter-dropdown">
+                        <select>
+                            <option value="">Sort by...</option>
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="price_asc">Price (Low to High)</option>
+                            <option value="price_desc">Price (High to Low)</option>
+                            <option value="stock_asc">Stock (Low to High)</option>
+                            <option value="stock_desc">Stock (High to Low)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Products will be loaded here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Add Product Tab -->
+        <div id="add-product" class="tab-content">
+            <div class="product-form">
+                <div class="form-header">
+                    <h2>Add New Product</h2>
+                </div>
+                <form method="post" action="{% url 'add_product' %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product_name">Product Name</label>
+                            <input type="text" id="product_name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product_category">Category</label>
+                            <select id="product_category" name="category" required>
+                                <option value="">Select Category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.category_id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product_price">Price (₹)</label>
+                            <input type="number" id="product_price" name="price" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product_stock">Stock Quantity</label>
+                            <input type="number" id="product_stock" name="stock" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product_quantity">Quantity (e.g., 500g, 1L)</label>
+                            <input type="text" id="product_quantity" name="quantity">
+                        </div>
+                        <div class="form-group">
+                            <label for="product_expiry">Expiry Date</label>
+                            <input type="date" id="product_expiry" name="expiry_date">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product_supplier">Supplier</label>
+                        <select id="product_supplier" name="suppliers" multiple>
+                            {% for supplier in suppliers %}
+                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="button" class="form-button cancel-button">Cancel</button>
+                        <button type="submit" class="form-button save-button">Add Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Edit Products Tab -->
+        <div id="edit-product" class="tab-content">
+            <div class="search-filter">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search products to edit...">
+                </div>
+                <div class="filter-dropdown">
+                    <select>
+                        <option value="">Filter by Category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.category_id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        
+                        <td>{{ product.category.name }}</td>
+                        <td>{{ product.quantity|default:"N/A" }}</td>
+                        <td>₹{{ product.price }}</td>
+                        <td>{{ product.stock }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-button edit-button" data-product-id="{{ product.id }}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="action-button delete-button" data-product-id="{{ product.id }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td> 
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No products available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>MartManager Grocery Management System provides comprehensive tools for efficient store management.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-phone"></i> +91 1234567890 </p>
+                <p><i class="fas fa-envelope"></i> support@MartManager.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Store Street, Mumbai, India</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2025 MartManager Grocery Management System. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- JavaScript to handle tab switching and category-product views -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Declare these variables in the global scope
+    let currentProducts = [];  // Holds the products for the selected category
+    let currentEditProducts = [];  // Holds products for the edit tab
+
+    // Tab switching
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+
+            // Remove active class from all buttons and tabs
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to current button and tab
+            this.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            // Load edit products data when switching to edit-product tab
+            if (tabId === 'edit-product') {
+                loadAllProducts();
+            }
+        });
+    });
+
+    // Category view switch
+    const categoryCards = document.querySelectorAll('.category-card');
+    const categoriesView = document.querySelector('.categories-view');
+    const productsSection = document.querySelector('.products-section');
+    const backButton = document.querySelector('.back-to-categories');
+    const selectedCategoryTitle = document.querySelector('.selected-category');
+
+    const productSearchInput = document.querySelector('.products-section .search-bar input');
+    const productSortSelect = document.querySelector('.products-section .filter-dropdown select');
+
+    // Edit Products Tab Search and Sort
+    const editProductSearchInput = document.querySelector('#edit-product .search-bar input');
+    const editProductSortSelect = document.querySelector('#edit-product .filter-dropdown select');
+    const editProductCategoryFilter = document.querySelector('#edit-product .filter-dropdown select');
+    
+    
+
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const categoryId = this.getAttribute('data-category-id');
+            const categoryName = this.querySelector('.category-name').textContent;
+
+            // Update UI
+            selectedCategoryTitle.textContent = categoryName;
+            categoriesView.classList.remove('active');
+            productsSection.classList.add('active');
+
+            // Load products for the selected category
+            loadProductsByCategory(categoryId);
+        });
+    });
+
+    backButton.addEventListener('click', function() {
+        productsSection.classList.remove('active');
+        categoriesView.classList.add('active');
+    });
+
+    // Search filter listener for view stock
+    productSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        filterProducts(searchTerm);
+    });
+
+    // Sort filter listener
+    productSortSelect.addEventListener('change', function() {
+        const sortValue = this.value;
+        sortProducts(sortValue);
+    });
+
+    // Search filter listener for Edit Products
+    editProductSearchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        filterEditProducts(searchTerm);
+    });
+
+    // Sort filter listener for Edit Products
+    editProductSortSelect.addEventListener('change', function() {
+        const sortValue = this.value;
+        sortEditProducts(sortValue);
+    });
+
+    function loadAllProducts() {
+        // Get the table and extract products data
+        const editProductsTable = document.querySelector('#edit-product .products-table tbody');
+        
+        // Initialize the array
+        currentEditProducts = [];
+        
+        // Only proceed if the table exists
+        if (editProductsTable) {
+            const rows = editProductsTable.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const columns = row.querySelectorAll('td');
+                if (columns.length >= 8) { // Make sure it's a valid product row
+                    const product = {
+                        id: columns[1].textContent.trim(),
+                        name: columns[2].textContent.trim(),
+                        category: { name: columns[3].textContent.trim() },
+                        quantity: columns[4].textContent.trim(),
+                        price: parseFloat(columns[5].textContent.replace('₹', '').trim()) || 0,
+                        stock: parseInt(columns[6].textContent.trim()) || 0,
+                    };
+                    currentEditProducts.push(product);
+                }
+            });
+            console.log("Loaded edit products:", currentEditProducts);
+        } else {
+            console.error("Products table not found");
+        }
+        
+        return currentEditProducts;
+    }
+
+    // Load products by category
+    function loadProductsByCategory(categoryId) {
+        const productsTable = document.querySelector('.products-section .products-table tbody');
+        productsTable.innerHTML = '<tr><td colspan="7" class="text-center">Loading products...</td></tr>';
+
+        // Reset search and sort fields
+        productSearchInput.value = '';
+        productSortSelect.value = '';
+
+        fetch(`/api/products/${categoryId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.products && data.products.length > 0) {
+                    currentProducts = data.products;  // Store for search/sort
+                    displayProducts(currentProducts);
+                } else {
+                    productsTable.innerHTML = '<tr><td colspan="7" class="text-center">No products found in this category.</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching products:', error);
+                productsTable.innerHTML = '<tr><td colspan="7" class="text-center">Error loading products. Please try again.</td></tr>';
+            });
+    }
+
+    // Display products in the table
+    function displayProducts(products) {
+        const productsTable = document.querySelector('.products-section .products-table tbody');
+        productsTable.innerHTML = '';
+
+        if (products.length === 0) {
+            productsTable.innerHTML = '<tr><td colspan="7" class="text-center">No products match your search.</td></tr>';
+            return;
+        }
+
+        products.forEach((product, index) => {
+            let statusLabel = 'In Stock';
+            if (product.status === 'low-stock') statusLabel = 'Low Stock';
+            if (product.status === 'out-of-stock') statusLabel = 'Out of Stock';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.quantity || 'N/A'}</td>
+                <td>₹${product.price.toFixed(2)}</td>
+                <td>${product.stock}</td>
+                <td><span class="stock-status ${product.status}">${statusLabel}</span></td>
+            `;
+            productsTable.appendChild(row);
+        });
+    }
+
+    // Filter products by search term for view stock
+    function filterProducts(searchTerm) {
+        if (!currentProducts || currentProducts.length === 0) return;
+
+        if (searchTerm === '') {
+            displayProducts(currentProducts);
+            return;
+        }
+
+        const filteredProducts = currentProducts.filter(product =>
+            product.name.toLowerCase().includes(searchTerm)
+        );
+
+        displayProducts(filteredProducts);
+    }
+
+    // Sort products by selected criteria
+    function sortProducts(sortValue) {
+        if (!currentProducts || currentProducts.length === 0) return;
+
+        let sortedProducts = [...currentProducts];
+
+        switch (sortValue) {
+            case 'name_asc':
+                sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name_desc':
+                sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            case 'price_asc':
+                sortedProducts.sort((a, b) => a.price - b.price);
+                break;
+            case 'price_desc':
+                sortedProducts.sort((a, b) => b.price - a.price);
+                break;
+            case 'stock_asc':
+                sortedProducts.sort((a, b) => a.stock - b.stock);
+                break;
+            case 'stock_desc':
+                sortedProducts.sort((a, b) => b.stock - a.stock);
+                break;
+            default:
+                break;
+        }
+
+        displayProducts(sortedProducts);
+    }
+
+    // Filter products by search term for Edit Products
+    function filterEditProducts(searchTerm) {
+        console.log("Filtering edit products with term:", searchTerm);
+        console.log("Current edit products:", currentEditProducts);
+        
+        if (!currentEditProducts || currentEditProducts.length === 0) {
+            console.log("No edit products to filter");
+            return;
+        }
+
+        if (searchTerm === '') {
+            displayEditProducts(currentEditProducts);
+            return;
+        }
+
+        const filteredProducts = currentEditProducts.filter(product =>
+            product.name.toLowerCase().includes(searchTerm)
+        );
+
+        console.log("Filtered products:", filteredProducts);
+        displayEditProducts(filteredProducts);
+    }
+        
+    // Sort products by selected criteria for Edit Products
+    function sortEditProducts(sortValue) {
+        console.log("Sorting edit products by:", sortValue);
+        
+        if (!currentEditProducts || currentEditProducts.length === 0) {
+            console.log("No edit products to sort");
+            return;
+        }
+
+        let sortedProducts = [...currentEditProducts];
+
+        switch (sortValue) {
+            case 'name_asc':
+                sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name_desc':
+                sortedProducts.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            case 'price_asc':
+                sortedProducts.sort((a, b) => a.price - b.price);
+                break;
+            case 'price_desc':
+                sortedProducts.sort((a, b) => b.price - a.price);
+                break;
+            case 'stock_asc':
+                sortedProducts.sort((a, b) => a.stock - b.stock);
+                break;
+            case 'stock_desc':
+                sortedProducts.sort((a, b) => b.stock - a.stock);
+                break;
+            default:
+                break;
+        }
+
+        console.log("Sorted products:", sortedProducts);
+        displayEditProducts(sortedProducts);
+    }
+
+    // Display products in the table for Edit Products
+    function displayEditProducts(products) {
+        console.log("Displaying edit products:", products);
+        
+        const editProductsTable = document.querySelector('#edit-product .products-table tbody');
+        editProductsTable.innerHTML = '';
+
+        if (products.length === 0) {
+            editProductsTable.innerHTML = '<tr><td colspan="8" class="text-center">No products match your search.</td></tr>';
+            return;
+        }
+
+        products.forEach((product, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.category.name}</td>
+                <td>${product.quantity || 'N/A'}</td>
+                <td>₹${product.price.toFixed(2)}</td>
+                <td>${product.stock}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-button edit-button" data-product-id="${product.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-button delete-button" data-product-id="${product.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            `;
+            editProductsTable.appendChild(row);
+        });
+        
+        // Re-attach event listeners to edit and delete buttons
+        attachActionButtonListeners();
+    }
+    
+    // Attach event listeners to edit and delete buttons
+    function attachActionButtonListeners() {
+        const editButtons = document.querySelectorAll('.edit-button');
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                // Handle edit functionality
+                console.log("Edit product:", productId);
+                // Implement your edit logic here
+            });
+        });
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                // Handle delete functionality
+                console.log("Delete product:", productId);
+                // Implement your delete logic here
+            });
+        });
+    }
+
+    // Initialize on page load
+    loadAllProducts();
+});
+        
+
+    </script>
+</body>
+</html>
