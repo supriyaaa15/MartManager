@@ -13,6 +13,7 @@ from .models import Category, Product, Supplier
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 # Helper function to check if user is admin
 def is_admin(user):
@@ -449,9 +450,82 @@ def get_all_products(request):
     
     return JsonResponse({'products': products_data})
 
-from django.shortcuts import render
-from .models import Supplier, Product
-
 def manage_orders(request):
     suppliers = Supplier.objects.prefetch_related('products').all()
     return render(request, 'manageOrders.html', {'suppliers': suppliers})
+
+def add_supplier_to_products(supplier_id, product_ids):
+    """
+    Associates a single supplier with multiple products.
+    
+    Args:
+        supplier_id (int): The ID of the supplier to add
+        product_ids (list): A list of product IDs to associate with the supplier
+        
+    Returns:
+        int: The number of products that were processed
+    """
+    try:
+        # Get the supplier
+        supplier = Supplier.objects.get(id=supplier_id)
+        
+        # Get the products
+        products = Product.objects.filter(id__in=product_ids)
+        
+        # Count before adding to know how many products we're processing
+        product_count = products.count()
+        
+        if product_count == 0:
+            return 0  # No products found
+            
+        # Add the supplier to all products in a single operation
+        supplier.products.add(*products)
+        
+        return product_count
+        
+    except Supplier.DoesNotExist:
+        # Handle the case where the supplier doesn't exist
+        raise ValueError(f"Supplier with ID {supplier_id} does not exist")
+    except Exception as e:
+        # Handle other exceptions
+        raise e
+
+
+def add_supplier_view(request):
+    # Get all suppliers for the dropdown
+    suppliers = Supplier.objects.filter(is_active=True)
+    
+    # Get all products for the multi-select
+    products = Product.objects.all()
+    
+    if request.method == 'POST':
+        # Get the form data
+        supplier_id = request.POST.get('supplier')
+        product_ids = request.POST.getlist('products')  # getlist() for multiple selections
+        
+        if not supplier_id or not product_ids:
+            messages.error(request, "Please select a supplier and at least one product")
+            return render(request, 'add_supplier.html', {'suppliers': suppliers, 'products': products})
+        
+        try:
+            # Wrap in a transaction for safety
+            with transaction.atomic():
+                supplier = Supplier.objects.get(id=supplier_id)
+                selected_products = Product.objects.filter(id__in=product_ids)
+                
+                # Add the supplier to all selected products
+                supplier.products.add(*selected_products)
+                
+                messages.success(
+                    request, 
+                    f"Successfully added supplier '{supplier.name}' to {len(product_ids)} products"
+                )
+                return redirect('product_list')  # Redirect to your product list view
+                
+        except Supplier.DoesNotExist:
+            messages.error(request, "The selected supplier does not exist")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+    
+    # For GET requests or if there's an error
+    return render(request, 'add_supplier.html', {'suppliers': suppliers, 'products': products})
