@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from django.shortcuts import render
+
+
 
 urlpatterns = [
     path('', views.homepage, name='homepage'),
@@ -31,5 +34,7 @@ urlpatterns = [
     path('api/product/<int:product_id>/update/', views.update_product, name='update_product'),
     path('api/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
     path('api/products/all/', views.get_all_products, name='get_all_products'),
+    path('manage-orders/', views.manage_orders, name='manage_orders'),
+    path('manage-orders/', lambda request: render(request, 'manageOrders.html'), name='manage_orders'),
     # Add other URLs as needed
 ]

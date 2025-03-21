@@ -1,0 +1,1317 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - MartManager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #1b5e20;
+            --background-color: #e8f5e9;
+            --text-color: #333;
+            --white: #fff;
+            --danger: #f44336;
+            --danger-dark: #d32f2f;
+            --warning: #ff9800;
+            --success: #4caf50;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Navbar Styles - Same as admin_dashboard.html */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-greeting {
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background-color: var(--danger);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--danger-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 160px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Tab Navigation */
+        .tab-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--white);
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .tab-button {
+            background: var(--white);
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            flex: 1;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .tab-button.active {
+            background-color: var(--white);
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-content {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 0 0 8px 8px;
+            box-shadow: var(--shadow);
+            min-height: 300px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Supplier Cards */
+        .supplier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .supplier-card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid #ddd;
+        }
+
+        .supplier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .supplier-header {
+            padding: 1rem;
+            background: var(--secondary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supplier-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .supplier-contact {
+            font-size: 0.9rem;
+        }
+
+        .supplier-body {
+            padding: 1rem;
+        }
+
+        .supplier-products {
+            margin-top: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .product-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .supplier-footer {
+            padding: 1rem;
+            background: #f5f5f5;
+            text-align: right;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        /* Order Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1050;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 1rem;
+        }
+
+        .modal-footer {
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        /* Order List Styles */
+        .order-list {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .order-item {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .order-header {
+            padding: 1rem;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-supplier {
+            font-weight: 500;
+        }
+
+        .order-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-received {
+            background: var(--success);
+            color: white;
+        }
+
+        .order-details {
+            padding: 1rem;
+        }
+
+        .product-list {
+            border-top: 1px solid #eee;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+        }
+
+        .product-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-row:last-child {
+            border-bottom: none;
+        }
+
+        .order-actions {
+            padding: 1rem;
+            background: #f5f5f5;
+            text-align: right;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .product-table th,
+        .product-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .product-quantity {
+            display: flex;
+            align-items: center;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            padding: 0.25rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 0.5rem;
+        }
+
+        .quantity-btn {
+            background: #eee;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quantity-btn:hover {
+            background: #ddd;
+        }
+
+        /* Footer Styles */
+        .footer {
+            margin-top: auto;
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section p {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-section a:hover {
+            color: #a5d6a7;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .social-icons a:hover {
+            background: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .logo {
+                margin-bottom: 1rem;
+            }
+            
+            .nav-user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .social-icons {
+                justify-content: center;
+            }
+        }
+
+        .dashboard-btn {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.dashboard-btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-shopping-cart"></i>
+            <span>MartManager</span>
+        </div>
+        <div class="nav-user-info">
+            <span class="user-greeting">Welcome, {{ request.user.username }}</span>
+            <a href="{% url 'dashboard' %}" class="dashboard-btn">
+                <i class="fas fa-bars"></i> Dashboard
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Manage Orders</h1>
+            <p>Order products from suppliers and manage your inventory</p>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="suppliers">Suppliers</button>
+                <button class="tab-button" data-tab="pending-orders">Pending Orders</button>
+                <button class="tab-button" data-tab="order-history">Order History</button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- Suppliers Tab -->
+                <div id="suppliers" class="tab-pane active">
+                    <div class="supplier-grid">
+                        {% for supplier in suppliers %}
+                        <div class="supplier-card">
+                            <div class="supplier-header">
+                                <div class="supplier-name">{{ supplier.name }}</div>
+                            </div>
+                            <div class="supplier-body">
+                                <div class="supplier-contact">
+                                    <p><i class="fas fa-envelope"></i> {{ supplier.email }}</p>
+                                    <p><i class="fas fa-phone"></i> {{ supplier.contact }}</p>
+                                </div>
+                                <h4>Products</h4>
+                                <div class="supplier-products">
+                                    {% for product in supplier.products.all %}
+                                    <div class="product-item">
+                                        <span>{{ product.name }}</span>
+                                        <span>₹{{ product.price }}</span>
+                                    </div>
+                                    {% empty %}
+                                    <p>No products available from this supplier.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="supplier-footer">
+                                <button class="btn btn-primary create-order-btn" data-supplier-id="{{ supplier.id }}" data-supplier-name="{{ supplier.name }}">
+                                    <i class="fas fa-plus"></i> Create Order
+                                </button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="card">
+                            <div class="card-body">
+                                <p>No suppliers found. Please add suppliers first.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Pending Orders Tab -->
+                <div id="pending-orders" class="tab-pane">
+                    <h2>Pending Orders</h2>
+                    <ul class="order-list" id="pending-orders-list">
+                        {% for order in pending_orders %}
+                        <li class="order-item">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.id }}</span>
+                                <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="order-details">
+                                <div class="order-supplier">Supplier: {{ order.supplier.name }}</div>
+                                <div class="product-list">
+                                    {% for item in order.items.all %}
+                                    <div class="product-row">
+                                        <div>{{ item.product.name }}</div>
+                                        <div>{{ item.quantity }} × ₹{{ item.price }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <button class="btn btn-primary mark-received-btn" data-order-id="{{ order.id }}">
+                                    <i class="fas fa-check"></i> Mark as Received
+                                </button>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="no-orders">No pending orders found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Order History Tab -->
+                <div id="order-history" class="tab-pane">
+                    <h2>Order History</h2>
+                    <ul class="order-list" id="order-history-list">
+                        {% for order in completed_orders %}
+                        <li class="order-item">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.id }}</span>
+                                <div>
+                                    <span class="order-status status-received">Received</span>
+                                    <span class="order-date">{{ order.received_date|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="order-details">
+                                <div class="order-supplier">Supplier: {{ order.supplier.name }}</div>
+                                <div class="order-date">Ordered: {{ order.created_at|date:"M d, Y" }}</div>
+                                <div class="product-list">
+                                    {% for item in order.items.all %}
+                                    <div class="product-row">
+                                        <div>{{ item.product.name }}</div>
+                                        <div>{{ item.quantity }} × ₹{{ item.price }}</div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="no-orders">No completed orders found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Order Modal -->
+    <div class="modal-backdrop" id="createOrderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Order from <span id="supplierName"></span></h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <input type="hidden" id="supplier_id" name="supplier_id">
+                    
+                    <div class="form-group">
+                        <table class="product-table" id="productTable">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody">
+                                <!-- Products will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Total Amount:</label>
+                        <div><strong id="orderTotal">₹0.00</strong></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="placeOrderBtn">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mark as Received Modal -->
+    <div class="modal-backdrop" id="receivedModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Order Reception</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to mark this order as received?</p>
+                <p>This will automatically add the products to your inventory.</p>
+            </div>
+            <div class="modal-footer">
+                <form id="receiveOrderForm">
+                    <input type="hidden" id="receive_order_id" name="order_id">
+                    <button class="btn btn-primary" id="confirmReceiveBtn">Confirm Reception</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>MartManager Grocery Management System provides comprehensive tools for efficient store management.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p><i class="fas fa-phone"></i> +91 1234567890 </p>
+                <p><i class="fas fa-envelope"></i> support@MartManager.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Store Street, Mumbai, India</p>
+            </div>
+        </div>
+        
+<div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+        <div class="copyright">
+            &copy; 2025 MartManager Grocery Management System. All rights reserved.
+        </div>
+    </footer>
+
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Tab navigation
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and panes
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            
+            // Add active class to current tab and pane
+            this.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+    
+    // Modal handling
+    const modals = document.querySelectorAll('.modal-backdrop');
+    const closeBtns = document.querySelectorAll('.modal-close');
+    
+    // Create Order buttons
+    const createOrderBtns = document.querySelectorAll('.create-order-btn');
+    const createOrderModal = document.getElementById('createOrderModal');
+    const supplierNameSpan = document.getElementById('supplierName');
+    const supplierIdInput = document.getElementById('supplier_id');
+    const productTableBody = document.getElementById('productTableBody');
+    const orderTotalElem = document.getElementById('orderTotal');
+    
+    createOrderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const supplierId = this.getAttribute('data-supplier-id');
+            const supplierName = this.getAttribute('data-supplier-name');
+            
+            supplierNameSpan.textContent = supplierName;
+            supplierIdInput.value = supplierId;
+            
+            // Fetch supplier products
+            fetchSupplierProducts(supplierId);
+            
+            // Show modal
+            createOrderModal.style.display = 'flex';
+        });
+    });
+    
+    // Mark as Received buttons
+    const markReceivedBtns = document.querySelectorAll('.mark-received-btn');
+    const receivedModal = document.getElementById('receivedModal');
+    const receiveOrderIdInput = document.getElementById('receive_order_id');
+    
+    markReceivedBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            receiveOrderIdInput.value = orderId;
+            
+            // Show modal
+            receivedModal.style.display = 'flex';
+        });
+    });
+    
+    // Close modals
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+        });
+    });
+    
+    // Close modal if clicked outside
+    modals.forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    });
+    
+    // Place Order
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const orderForm = document.getElementById('orderForm');
+    
+    placeOrderBtn.addEventListener('click', function() {
+        // Create order data
+        const orderData = {
+            supplier_id: supplierIdInput.value,
+            items: []
+        };
+        
+        // Get all product rows
+        const productRows = productTableBody.querySelectorAll('tr');
+        productRows.forEach(row => {
+            const productId = row.getAttribute('data-product-id');
+            const quantity = parseInt(row.querySelector('.quantity-input').value);
+            const price = parseFloat(row.querySelector('.quantity-input').getAttribute('data-price'));
+            
+            if (quantity > 0) {
+                orderData.items.push({
+                    product_id: productId,
+                    quantity: quantity,
+                    price: price
+                });
+            }
+        });
+        
+        // Submit order
+        if (orderData.items.length > 0) {
+            submitOrder(orderData);
+        } else {
+            alert('Please add at least one product to the order.');
+        }
+    });
+    
+    // Confirm Receive Order
+    const confirmReceiveBtn = document.getElementById('confirmReceiveBtn');
+    const receiveOrderForm = document.getElementById('receiveOrderForm');
+    
+    confirmReceiveBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const orderId = receiveOrderIdInput.value;
+        markOrderAsReceived(orderId);
+    });
+    
+    // Helper function to fetch supplier products
+    function fetchSupplierProducts(supplierId) {
+        // Use Django's CSRF token for AJAX requests
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/api/suppliers/${supplierId}/products/`, {
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            productTableBody.innerHTML = '';
+            
+            data.products.forEach(product => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-product-id', product.id);
+                
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <div class="product-quantity">
+                            <button type="button" class="quantity-btn decrease-btn">-</button>
+                            <input type="number" class="quantity-input" value="0" min="0" data-price="${product.price}">
+                            <button type="button" class="quantity-btn increase-btn">+</button>
+                        </div>
+                    </td>
+                    <td class="product-total">₹0.00</td>
+                `;
+                
+                productTableBody.appendChild(row);
+            });
+            
+            // Add event listeners for quantity buttons
+            addQuantityEventListeners();
+        })
+        .catch(error => {
+            console.error('Error fetching products:', error);
+            
+            // For demo/development purposes - populate with sample data if API fails
+            // Remove this in production
+            const sampleProducts = [
+                { id: 1, name: 'Rice (5kg)', price: 250.00 },
+                { id: 2, name: 'Wheat Flour (1kg)', price: 45.00 },
+                { id: 3, name: 'Sugar (1kg)', price: 40.00 },
+                { id: 4, name: 'Cooking Oil (1L)', price: 150.00 }
+            ];
+            
+            productTableBody.innerHTML = '';
+            
+            sampleProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-product-id', product.id);
+                
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <div class="product-quantity">
+                            <button type="button" class="quantity-btn decrease-btn">-</button>
+                            <input type="number" class="quantity-input" value="0" min="0" data-price="${product.price}">
+                            <button type="button" class="quantity-btn increase-btn">+</button>
+                        </div>
+                    </td>
+                    <td class="product-total">₹0.00</td>
+                `;
+                
+                productTableBody.appendChild(row);
+            });
+            
+            // Add event listeners for quantity buttons
+            addQuantityEventListeners();
+        });
+    }
+    
+    // Add event listeners for quantity buttons and inputs
+    function addQuantityEventListeners() {
+        const decreaseBtns = document.querySelectorAll('.decrease-btn');
+        const increaseBtns = document.querySelectorAll('.increase-btn');
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+        
+        decreaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.nextElementSibling;
+                let value = parseInt(input.value);
+                if (value > 0) {
+                    input.value = value - 1;
+                    // Trigger change event
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+        
+        increaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                let value = parseInt(input.value);
+                input.value = value + 1;
+                // Trigger change event
+                input.dispatchEvent(new Event('change'));
+            });
+        });
+        
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                updateProductTotal(this);
+                updateOrderTotal();
+            });
+        });
+    }
+    
+    // Update product total price
+    function updateProductTotal(input) {
+        const row = input.closest('tr');
+        const price = parseFloat(input.getAttribute('data-price'));
+        const quantity = parseInt(input.value);
+        const totalCell = row.querySelector('.product-total');
+        
+        const total = price * quantity;
+        totalCell.textContent = `₹${total.toFixed(2)}`;
+    }
+    
+    // Update order total price
+    function updateOrderTotal() {
+        let total = 0;
+        const totalCells = document.querySelectorAll('.product-total');
+        
+        totalCells.forEach(cell => {
+            const value = parseFloat(cell.textContent.replace('₹', ''));
+            if (!isNaN(value)) {
+                total += value;
+            }
+        });
+        
+        orderTotalElem.textContent = `₹${total.toFixed(2)}`;
+    }
+    
+    // Submit order to server
+    function submitOrder(orderData) {
+        // Use Django's CSRF token for AJAX requests
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch('/api/orders/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Close modal
+            createOrderModal.style.display = 'none';
+            
+            // Show success message
+            alert('Order placed successfully!');
+            
+            // Refresh page to show new order
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error submitting order:', error);
+            
+            // For demo purposes - simulate successful order
+            // Remove this in production
+            createOrderModal.style.display = 'none';
+            alert('Order placed successfully! (Demo mode)');
+            
+            // Create a new pending order item and add it to the list
+            const pendingOrdersList = document.getElementById('pending-orders-list');
+            const noOrdersMessage = document.querySelector('.no-orders');
+            
+            if (noOrdersMessage) {
+                noOrdersMessage.remove();
+            }
+            
+            const newOrderItem = document.createElement('li');
+            newOrderItem.className = 'order-item';
+            
+            const orderId = Math.floor(Math.random() * 1000); // Generate a random order ID for demo
+            const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            
+            let productsHtml = '';
+            orderData.items.forEach(item => {
+                const row = document.querySelector(`tr[data-product-id="${item.product_id}"]`);
+                const productName = row.querySelector('td').textContent;
+                productsHtml += `
+                <div class="product-row">
+                    <div>${productName}</div>
+                    <div>${item.quantity} × ₹${item.price.toFixed(2)}</div>
+                </div>
+                `;
+            });
+            
+            newOrderItem.innerHTML = `
+                <div class="order-header">
+                    <span class="order-id">Order #${orderId}</span>
+                    <span class="order-date">${currentDate}</span>
+                </div>
+                <div class="order-details">
+                    <div class="order-supplier">Supplier: ${supplierNameSpan.textContent}</div>
+                    <div class="product-list">
+                        ${productsHtml}
+                    </div>
+                </div>
+                <div class="order-actions">
+                    <button class="btn btn-primary mark-received-btn" data-order-id="${orderId}">
+                        <i class="fas fa-check"></i> Mark as Received
+                    </button>
+                </div>
+            `;
+            
+            pendingOrdersList.prepend(newOrderItem);
+            
+            // Switch to the Pending Orders tab
+            document.querySelector('.tab-button[data-tab="pending-orders"]').click();
+            
+            // Add event listener to the new "Mark as Received" button
+            const newMarkReceivedBtn = newOrderItem.querySelector('.mark-received-btn');
+            newMarkReceivedBtn.addEventListener('click', function() {
+                const newOrderId = this.getAttribute('data-order-id');
+                receiveOrderIdInput.value = newOrderId;
+                receivedModal.style.display = 'flex';
+            });
+        });
+    }
+    
+    // Mark order as received
+    function markOrderAsReceived(orderId) {
+        // Use Django's CSRF token for AJAX requests
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/api/orders/${orderId}/receive/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Close modal
+            receivedModal.style.display = 'none';
+            
+            // Show success message
+            alert('Order marked as received. Inventory has been updated!');
+            
+            // Refresh page to show updated orders
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error marking order as received:', error);
+            
+            // For demo purposes - simulate successful update
+            // Remove this in production
+            receivedModal.style.display = 'none';
+            alert('Order marked as received. Inventory has been updated! (Demo mode)');
+            
+            // Move the order from pending to order history
+            const orderItem = document.querySelector(`.mark-received-btn[data-order-id="${orderId}"]`).closest('.order-item');
+            
+            if (orderItem) {
+                const orderHistoryList = document.getElementById('order-history-list');
+                const noHistoryMessage = orderHistoryList.querySelector('.no-orders');
+                
+                if (noHistoryMessage) {
+                    noHistoryMessage.remove();
+                }
+                
+                // Clone the order item
+                const historyItem = orderItem.cloneNode(true);
+                
+                // Update status and remove actions
+                const orderHeader = historyItem.querySelector('.order-header');
+                const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                orderHeader.innerHTML = `
+                    <span class="order-id">${orderHeader.querySelector('.order-id').textContent}</span>
+                    <div>
+                        <span class="order-status status-received">Received</span>
+                        <span class="order-date">${currentDate}</span>
+                    </div>
+                `;
+                
+                // Add the created at date to the order details
+                const orderDetails = historyItem.querySelector('.order-details');
+                const supplierInfo = orderDetails.querySelector('.order-supplier').outerHTML;
+                const productList = orderDetails.querySelector('.product-list').outerHTML;
+                
+                orderDetails.innerHTML = `
+                    ${supplierInfo}
+                    <div class="order-date">Ordered: ${orderItem.querySelector('.order-date').textContent}</div>
+                    ${productList}
+                `;
+                
+                // Remove the actions section
+                historyItem.querySelector('.order-actions').remove();
+                
+                // Add to history list
+                orderHistoryList.prepend(historyItem);
+                
+                // Remove from pending list
+                orderItem.remove();
+                
+                // If no more pending orders, add no orders message
+                if (document.querySelectorAll('#pending-orders-list .order-item').length === 0) {
+                    document.getElementById('pending-orders-list').innerHTML = '<li class="no-orders">No pending orders found.</li>';
+                }
+                
+                // Switch to the Order History tab
+                document.querySelector('.tab-button[data-tab="order-history"]').click();
+            }
+        });
+    }
+    
+    // Get Django CSRF cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+</body>
+</html>

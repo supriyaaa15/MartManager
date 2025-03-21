@@ -448,3 +448,10 @@ def get_all_products(request):
         products_data.append(product_data)
     
     return JsonResponse({'products': products_data})
+
+from django.shortcuts import render
+from .models import Supplier, Product
+
+def manage_orders(request):
+    suppliers = Supplier.objects.prefetch_related('products').all()
+    return render(request, 'manageOrders.html', {'suppliers': suppliers})
