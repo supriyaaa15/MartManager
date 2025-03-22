@@ -34,8 +34,11 @@ urlpatterns = [
     path('api/product/<int:product_id>/update/', views.update_product, name='update_product'),
     path('api/product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
     path('api/products/all/', views.get_all_products, name='get_all_products'),
+    path('api/suppliers/<int:supplier_id>/products/', views.get_supplier_products, name='get_supplier_products'),
     path('manage-orders/', views.manage_orders, name='manage_orders'),
-    path('manage-orders/', lambda request: render(request, 'manageOrders.html'), name='manage_orders'),
+    path('api/orders/create/', views.create_order, name='create_order'),
+    path('api/orders/<int:order_id>/receive/', views.mark_order_received, name='mark_order_received'),
+    path('api/orders/<int:order_id>/delete/', views.delete_order, name='delete_order'),
     path('add_supplier_to_products/', views.add_supplier_to_products, name='add_supplier_to_products'),
     path('add-supplier/', views.add_supplier_view, name='add_supplier'),
     # Add other URLs as needed

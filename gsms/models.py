@@ -89,3 +89,29 @@ class TransactionDetail(models.Model):
     
     def __str__(self):
         return f"Detail for Transaction {self.transaction.trans_id} - {self.product.name}"
+
+class Order(models.Model):
+    id = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='orders')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('completed', 'Completed')
+    ], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    received_date = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Order #{self.id} - {self.supplier.name}"
+
+class OrderItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity} units"

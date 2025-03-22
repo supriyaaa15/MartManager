@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import resolve
 from .forms import LoginForm, RegisterUserForm
-from .models import UserLogin
+from .models import UserLogin, Order, OrderItem
 from django.contrib.auth.decorators import user_passes_test
 from .forms import EmployeeRegistrationForm, ProductForm
 from .models import Category, Product, Supplier
@@ -14,6 +14,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.core.paginator import Paginator
+from django.db.models import F
+from decimal import Decimal
+from django.utils import timezone
 
 # Helper function to check if user is admin
 def is_admin(user):
@@ -452,7 +456,168 @@ def get_all_products(request):
 
 def manage_orders(request):
     suppliers = Supplier.objects.prefetch_related('products').all()
-    return render(request, 'manageOrders.html', {'suppliers': suppliers})
+    
+    # Get pending orders with pagination
+    pending_orders = Order.objects.filter(status='pending').order_by('-created_at')
+    paginator = Paginator(pending_orders, 10)  # Show 10 orders per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get completed orders with pagination and date filtering
+    completed_orders = Order.objects.filter(status='completed')
+    
+    # Apply date filters if provided
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        # Convert start_date to start of day (00:00:00)
+        start_datetime = timezone.datetime.strptime(start_date, '%Y-%m-%d')
+        start_datetime = timezone.make_aware(start_datetime)
+        completed_orders = completed_orders.filter(created_at__gte=start_datetime)
+    
+    if end_date:
+        # Convert end_date to end of day (23:59:59)
+        end_datetime = timezone.datetime.strptime(end_date, '%Y-%m-%d')
+        end_datetime = timezone.make_aware(end_datetime)
+        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        completed_orders = completed_orders.filter(created_at__lte=end_datetime)
+    
+    completed_orders = completed_orders.order_by('-received_date')
+    completed_paginator = Paginator(completed_orders, 10)
+    completed_page_number = request.GET.get('completed_page')
+    completed_page_obj = completed_paginator.get_page(completed_page_number)
+    
+    return render(request, 'manageOrders.html', {
+        'suppliers': suppliers,
+        'pending_orders': page_obj,
+        'completed_orders': completed_page_obj
+    })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_order(request):
+    try:
+        data = json.loads(request.body)
+        supplier_id = data.get('supplier_id')
+        items = data.get('items', [])
+        
+        if not supplier_id or not items:
+            return JsonResponse({'error': 'Missing required data'}, status=400)
+        
+        supplier = Supplier.objects.get(id=supplier_id)
+        
+        # Calculate total amount
+        total_amount = Decimal('0.00')
+        order_items = []
+        
+        for item in items:
+            product = Product.objects.get(id=item['product_id'])
+            quantity = int(item['quantity'])
+            price = Decimal(str(item['price']))
+            subtotal = price * quantity
+            total_amount += subtotal
+            
+            order_items.append({
+                'product': product,
+                'quantity': quantity,
+                'price': price,
+                'subtotal': subtotal
+            })
+        
+        # Apply 20% discount if total exceeds 15000
+        discount = Decimal('0.00')
+        if total_amount > Decimal('15000.00'):
+            discount = total_amount * Decimal('0.20')
+            total_amount -= discount
+        
+        # Create order with transaction
+        with transaction.atomic():
+            order = Order.objects.create(
+                supplier=supplier,
+                total_amount=total_amount,
+                discount=discount,
+                status='pending'
+            )
+            
+            # Create order items
+            for item in order_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    quantity=item['quantity'],
+                    price=item['price'],
+                    subtotal=item['subtotal']
+                )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Order created successfully',
+            'order_id': order.id,
+            'total_amount': float(total_amount),
+            'discount': float(discount)
+        })
+        
+    except Supplier.DoesNotExist:
+        return JsonResponse({'error': 'Supplier not found'}, status=404)
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def mark_order_received(request, order_id):
+    try:
+        with transaction.atomic():
+            order = Order.objects.get(id=order_id)
+            
+            # Update order status
+            order.status = 'completed'
+            order.received_date = timezone.now()
+            order.save()
+            
+            # Update product stock
+            for item in order.items.all():
+                product = item.product
+                product.stock += item.quantity
+                product.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Order marked as received successfully'
+            })
+            
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_order(request, order_id):
+    try:
+        with transaction.atomic():
+            order = Order.objects.get(id=order_id)
+            
+            # Only allow deletion of completed orders
+            if order.status != 'completed':
+                return JsonResponse({
+                    'error': 'Only completed orders can be deleted'
+                }, status=400)
+            
+            # Delete the order (this will cascade delete order items)
+            order.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Order deleted successfully'
+            })
+            
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 def add_supplier_to_products(supplier_id, product_ids):
     """
@@ -529,3 +694,25 @@ def add_supplier_view(request):
     
     # For GET requests or if there's an error
     return render(request, 'add_supplier.html', {'suppliers': suppliers, 'products': products})
+
+@require_http_methods(["GET"])
+def get_supplier_products(request, supplier_id):
+    try:
+        supplier = Supplier.objects.get(id=supplier_id)
+        products = supplier.products.all()
+        
+        product_list = []
+        for product in products:
+            product_list.append({
+                'id': product.id,
+                'name': product.name,
+                'price': float(product.price),
+                'quantity': product.quantity,
+                'stock': product.stock
+            })
+        
+        return JsonResponse({'products': product_list})
+    except Supplier.DoesNotExist:
+        return JsonResponse({'error': 'Supplier not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

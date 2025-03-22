@@ -601,6 +601,140 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.page-link {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.page-link:hover {
+    background: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.current-page {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.order-discount {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.order-discount span {
+    display: block;
+}
+
+.order-discount span:last-child {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.order-total {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-dark);
+    transform: translateY(-2px);
+}
+
+.filter-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.search-section {
+    margin-bottom: 1.5rem;
+}
+
+.search-section input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.footer-section {
+    flex: 1;
+    text-align: center;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.social-icons a:hover {
+    background: var(--secondary-color);
+    transform: translateY(-3px);
+}
+
+.copyright {
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
     </style>
 </head>
 
@@ -639,6 +773,9 @@
             <div class="tab-content">
                 <!-- Suppliers Tab -->
                 <div id="suppliers" class="tab-pane active">
+                    <div class="search-section">
+                        <input type="text" id="supplierSearch" class="form-control" placeholder="Search suppliers or products...">
+                    </div>
                     <div class="supplier-grid">
                         {% for supplier in suppliers %}
                         <div class="supplier-card">
@@ -698,6 +835,17 @@
                                     </div>
                                     {% endfor %}
                                 </div>
+                                {% if order.discount > 0 %}
+                                <div class="order-discount">
+                                    <span>Original Total: ₹{{ order.total_amount|add:order.discount|floatformat:2 }}</span>
+                                    <span>Discount (20%): ₹{{ order.discount|floatformat:2 }}</span>
+                                    <span>Final Total: ₹{{ order.total_amount|floatformat:2 }}</span>
+                                </div>
+                                {% else %}
+                                <div class="order-total">
+                                    <span>Total: ₹{{ order.total_amount|floatformat:2 }}</span>
+                                </div>
+                                {% endif %}
                             </div>
                             <div class="order-actions">
                                 <button class="btn btn-primary mark-received-btn" data-order-id="{{ order.id }}">
@@ -709,11 +857,41 @@
                         <li class="no-orders">No pending orders found.</li>
                         {% endfor %}
                     </ul>
+                    
+                    <!-- Pagination for Pending Orders -->
+                    {% if pending_orders.has_other_pages %}
+                    <div class="pagination">
+                        {% if pending_orders.has_previous %}
+                        <a href="?page={{ pending_orders.previous_page_number }}" class="page-link">&laquo; Previous</a>
+                        {% endif %}
+                        
+                        <span class="current-page">
+                            Page {{ pending_orders.number }} of {{ pending_orders.paginator.num_pages }}
+                        </span>
+                        
+                        {% if pending_orders.has_next %}
+                        <a href="?page={{ pending_orders.next_page_number }}" class="page-link">Next &raquo;</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
                 
                 <!-- Order History Tab -->
                 <div id="order-history" class="tab-pane">
                     <h2>Order History</h2>
+                    <div class="filter-section">
+                        <form id="dateFilterForm" class="filter-form">
+                            <div class="form-group">
+                                <label for="startDate">Start Date:</label>
+                                <input type="date" id="startDate" name="start_date" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">End Date:</label>
+                                <input type="date" id="endDate" name="end_date" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </form>
+                    </div>
                     <ul class="order-list" id="order-history-list">
                         {% for order in completed_orders %}
                         <li class="order-item">
@@ -735,12 +913,45 @@
                                     </div>
                                     {% endfor %}
                                 </div>
+                                {% if order.discount > 0 %}
+                                <div class="order-discount">
+                                    <span>Original Total: ₹{{ order.total_amount|add:order.discount|floatformat:2 }}</span>
+                                    <span>Discount (20%): ₹{{ order.discount|floatformat:2 }}</span>
+                                    <span>Final Total: ₹{{ order.total_amount|floatformat:2 }}</span>
+                                </div>
+                                {% else %}
+                                <div class="order-total">
+                                    <span>Total: ₹{{ order.total_amount|floatformat:2 }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="order-actions">
+                                <button class="btn btn-danger delete-order-btn" data-order-id="{{ order.id }}">
+                                    <i class="fas fa-trash"></i> Delete Order
+                                </button>
                             </div>
                         </li>
                         {% empty %}
                         <li class="no-orders">No completed orders found.</li>
                         {% endfor %}
                     </ul>
+                    
+                    <!-- Pagination for Order History -->
+                    {% if completed_orders.has_other_pages %}
+                    <div class="pagination">
+                        {% if completed_orders.has_previous %}
+                        <a href="?completed_page={{ completed_orders.previous_page_number }}" class="page-link">&laquo; Previous</a>
+                        {% endif %}
+                        
+                        <span class="current-page">
+                            Page {{ completed_orders.number }} of {{ completed_orders.paginator.num_pages }}
+                        </span>
+                        
+                        {% if completed_orders.has_next %}
+                        <a href="?completed_page={{ completed_orders.next_page_number }}" class="page-link">Next &raquo;</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -838,6 +1049,37 @@
 
      <script>
         document.addEventListener('DOMContentLoaded', function() {
+    // FIRST THING: Check URL for active_tab parameter and activate that tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTabParam = urlParams.get('active_tab');
+    
+    if (activeTabParam) {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        // Remove active class from all tabs and panes
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabPanes.forEach(pane => pane.classList.remove('active'));
+        
+        // Activate the requested tab
+        const tabButton = document.querySelector(`.tab-button[data-tab="${activeTabParam}"]`);
+        const tabPane = document.getElementById(activeTabParam);
+        
+        if (tabButton && tabPane) {
+            tabButton.classList.add('active');
+            tabPane.classList.add('active');
+        }
+    }
+    
+    // Set initial date filter values from URL parameters
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const startDate = urlParams.get('start_date');
+    const endDate = urlParams.get('end_date');
+    
+    if (startDate) startDateInput.value = startDate;
+    if (endDate) endDateInput.value = endDate;
+
     // Tab navigation
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
@@ -982,65 +1224,36 @@
         .then(data => {
             productTableBody.innerHTML = '';
             
-            data.products.forEach(product => {
-                const row = document.createElement('tr');
-                row.setAttribute('data-product-id', product.id);
+            if (data.products && data.products.length > 0) {
+                data.products.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-product-id', product.id);
+                    
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>₹${product.price.toFixed(2)}</td>
+                        <td>
+                            <div class="product-quantity">
+                                <button type="button" class="quantity-btn decrease-btn">-</button>
+                                <input type="number" class="quantity-input" value="0" min="0" data-price="${product.price}">
+                                <button type="button" class="quantity-btn increase-btn">+</button>
+                            </div>
+                        </td>
+                        <td class="product-total">₹0.00</td>
+                    `;
+                    
+                    productTableBody.appendChild(row);
+                });
                 
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>₹${product.price.toFixed(2)}</td>
-                    <td>
-                        <div class="product-quantity">
-                            <button type="button" class="quantity-btn decrease-btn">-</button>
-                            <input type="number" class="quantity-input" value="0" min="0" data-price="${product.price}">
-                            <button type="button" class="quantity-btn increase-btn">+</button>
-                        </div>
-                    </td>
-                    <td class="product-total">₹0.00</td>
-                `;
-                
-                productTableBody.appendChild(row);
-            });
-            
-            // Add event listeners for quantity buttons
-            addQuantityEventListeners();
+                // Add event listeners for quantity buttons
+                addQuantityEventListeners();
+            } else {
+                productTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No products available from this supplier.</td></tr>';
+            }
         })
         .catch(error => {
             console.error('Error fetching products:', error);
-            
-            // For demo/development purposes - populate with sample data if API fails
-            // Remove this in production
-            const sampleProducts = [
-                { id: 1, name: 'Rice (5kg)', price: 250.00 },
-                { id: 2, name: 'Wheat Flour (1kg)', price: 45.00 },
-                { id: 3, name: 'Sugar (1kg)', price: 40.00 },
-                { id: 4, name: 'Cooking Oil (1L)', price: 150.00 }
-            ];
-            
-            productTableBody.innerHTML = '';
-            
-            sampleProducts.forEach(product => {
-                const row = document.createElement('tr');
-                row.setAttribute('data-product-id', product.id);
-                
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>₹${product.price.toFixed(2)}</td>
-                    <td>
-                        <div class="product-quantity">
-                            <button type="button" class="quantity-btn decrease-btn">-</button>
-                            <input type="number" class="quantity-input" value="0" min="0" data-price="${product.price}">
-                            <button type="button" class="quantity-btn increase-btn">+</button>
-                        </div>
-                    </td>
-                    <td class="product-total">₹0.00</td>
-                `;
-                
-                productTableBody.appendChild(row);
-            });
-            
-            // Add event listeners for quantity buttons
-            addQuantityEventListeners();
+            productTableBody.innerHTML = '<tr><td colspan="4" class="text-center">Error loading products. Please try again.</td></tr>';
         });
     }
     
@@ -1108,7 +1321,6 @@
     
     // Submit order to server
     function submitOrder(orderData) {
-        // Use Django's CSRF token for AJAX requests
         const csrftoken = getCookie('csrftoken');
         
         fetch('/api/orders/create/', {
@@ -1129,76 +1341,20 @@
             // Close modal
             createOrderModal.style.display = 'none';
             
-            // Show success message
-            alert('Order placed successfully!');
+            // Show success message with discount info if applicable
+            let message = 'Order placed successfully!';
+            if (data.discount > 0) {
+                message += `\nA 20% discount of ₹${data.discount.toFixed(2)} has been applied.`;
+                message += `\nFinal total: ₹${data.total_amount.toFixed(2)}`;
+            }
+            alert(message);
             
             // Refresh page to show new order
             window.location.reload();
         })
         .catch(error => {
             console.error('Error submitting order:', error);
-            
-            // For demo purposes - simulate successful order
-            // Remove this in production
-            createOrderModal.style.display = 'none';
-            alert('Order placed successfully! (Demo mode)');
-            
-            // Create a new pending order item and add it to the list
-            const pendingOrdersList = document.getElementById('pending-orders-list');
-            const noOrdersMessage = document.querySelector('.no-orders');
-            
-            if (noOrdersMessage) {
-                noOrdersMessage.remove();
-            }
-            
-            const newOrderItem = document.createElement('li');
-            newOrderItem.className = 'order-item';
-            
-            const orderId = Math.floor(Math.random() * 1000); // Generate a random order ID for demo
-            const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            
-            let productsHtml = '';
-            orderData.items.forEach(item => {
-                const row = document.querySelector(`tr[data-product-id="${item.product_id}"]`);
-                const productName = row.querySelector('td').textContent;
-                productsHtml += `
-                <div class="product-row">
-                    <div>${productName}</div>
-                    <div>${item.quantity} × ₹${item.price.toFixed(2)}</div>
-                </div>
-                `;
-            });
-            
-            newOrderItem.innerHTML = `
-                <div class="order-header">
-                    <span class="order-id">Order #${orderId}</span>
-                    <span class="order-date">${currentDate}</span>
-                </div>
-                <div class="order-details">
-                    <div class="order-supplier">Supplier: ${supplierNameSpan.textContent}</div>
-                    <div class="product-list">
-                        ${productsHtml}
-                    </div>
-                </div>
-                <div class="order-actions">
-                    <button class="btn btn-primary mark-received-btn" data-order-id="${orderId}">
-                        <i class="fas fa-check"></i> Mark as Received
-                    </button>
-                </div>
-            `;
-            
-            pendingOrdersList.prepend(newOrderItem);
-            
-            // Switch to the Pending Orders tab
-            document.querySelector('.tab-button[data-tab="pending-orders"]').click();
-            
-            // Add event listener to the new "Mark as Received" button
-            const newMarkReceivedBtn = newOrderItem.querySelector('.mark-received-btn');
-            newMarkReceivedBtn.addEventListener('click', function() {
-                const newOrderId = this.getAttribute('data-order-id');
-                receiveOrderIdInput.value = newOrderId;
-                receivedModal.style.display = 'flex';
-            });
+            alert('Error creating order. Please try again.');
         });
     }
     
@@ -1232,66 +1388,7 @@
         })
         .catch(error => {
             console.error('Error marking order as received:', error);
-            
-            // For demo purposes - simulate successful update
-            // Remove this in production
-            receivedModal.style.display = 'none';
-            alert('Order marked as received. Inventory has been updated! (Demo mode)');
-            
-            // Move the order from pending to order history
-            const orderItem = document.querySelector(`.mark-received-btn[data-order-id="${orderId}"]`).closest('.order-item');
-            
-            if (orderItem) {
-                const orderHistoryList = document.getElementById('order-history-list');
-                const noHistoryMessage = orderHistoryList.querySelector('.no-orders');
-                
-                if (noHistoryMessage) {
-                    noHistoryMessage.remove();
-                }
-                
-                // Clone the order item
-                const historyItem = orderItem.cloneNode(true);
-                
-                // Update status and remove actions
-                const orderHeader = historyItem.querySelector('.order-header');
-                const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                
-                orderHeader.innerHTML = `
-                    <span class="order-id">${orderHeader.querySelector('.order-id').textContent}</span>
-                    <div>
-                        <span class="order-status status-received">Received</span>
-                        <span class="order-date">${currentDate}</span>
-                    </div>
-                `;
-                
-                // Add the created at date to the order details
-                const orderDetails = historyItem.querySelector('.order-details');
-                const supplierInfo = orderDetails.querySelector('.order-supplier').outerHTML;
-                const productList = orderDetails.querySelector('.product-list').outerHTML;
-                
-                orderDetails.innerHTML = `
-                    ${supplierInfo}
-                    <div class="order-date">Ordered: ${orderItem.querySelector('.order-date').textContent}</div>
-                    ${productList}
-                `;
-                
-                // Remove the actions section
-                historyItem.querySelector('.order-actions').remove();
-                
-                // Add to history list
-                orderHistoryList.prepend(historyItem);
-                
-                // Remove from pending list
-                orderItem.remove();
-                
-                // If no more pending orders, add no orders message
-                if (document.querySelectorAll('#pending-orders-list .order-item').length === 0) {
-                    document.getElementById('pending-orders-list').innerHTML = '<li class="no-orders">No pending orders found.</li>';
-                }
-                
-                // Switch to the Order History tab
-                document.querySelector('.tab-button[data-tab="order-history"]').click();
-            }
+            alert('Error marking order as received. Please try again.');
         });
     }
     
@@ -1310,6 +1407,92 @@
         }
         return cookieValue;
     }
+
+    // Add event listeners for delete order buttons
+    const deleteOrderBtns = document.querySelectorAll('.delete-order-btn');
+    
+    deleteOrderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+                const orderId = this.getAttribute('data-order-id');
+                deleteOrder(orderId);
+            }
+        });
+    });
+    
+    // Function to delete order
+    function deleteOrder(orderId) {
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/api/orders/${orderId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Show success message
+            alert('Order deleted successfully');
+            
+            // Refresh page to show updated order list
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error deleting order:', error);
+            alert('Error deleting order. Please try again.');
+        });
+    }
+
+    // Date filter functionality - FIXED VERSION
+    const dateFilterForm = document.getElementById('dateFilterForm');
+    
+    dateFilterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        
+        // Create a URL with the filter parameters and the active tab
+        let url = new URL(window.location.href);
+        url.searchParams.set('start_date', startDate);
+        url.searchParams.set('end_date', endDate);
+        url.searchParams.set('active_tab', 'order-history');
+        
+        // Preserve the completed_page parameter if it exists
+        const completedPage = url.searchParams.get('completed_page');
+        if (completedPage) {
+            url.searchParams.set('completed_page', completedPage);
+        }
+        
+        // Navigate to the new URL
+        window.location.href = url.toString();
+    });
+
+    // Supplier search functionality
+    const supplierSearch = document.getElementById('supplierSearch');
+    const supplierCards = document.querySelectorAll('.supplier-card');
+    
+    supplierSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        supplierCards.forEach(card => {
+            const supplierName = card.querySelector('.supplier-name').textContent.toLowerCase();
+            const products = Array.from(card.querySelectorAll('.product-item span:first-child'))
+                .map(span => span.textContent.toLowerCase());
+            
+            if (supplierName.includes(searchTerm) || products.some(product => product.includes(searchTerm))) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
 });
 </script>
 </body>
