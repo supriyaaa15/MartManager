@@ -310,6 +310,36 @@
                 gap: 10px;
             }
             
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .social-icons {
+                justify-content: center;
+            }
+        }
+
+        {% comment %} /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .logo {
+                margin-bottom: 1rem;
+            }
+            
+            .nav-user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
             .form-row {
                 flex-direction: column;
                 gap: 0;
@@ -332,7 +362,7 @@
             .social-icons {
                 justify-content: center;
             }
-        }
+        } {% endcomment %}
     </style>
 </head>
 <body>
@@ -452,17 +482,20 @@
     </div>
 
     <!-- Footer -->
-    <div class="footer">
+    <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
                 <h3>About Us</h3>
-                <p>MartManager is a modern grocery management system designed to streamline inventory and sales processes.</p>
+                <p>MartManager Grocery Management System provides comprehensive tools for efficient store management.</p>
             </div>
+            
             <div class="footer-section">
                 <h3>Contact</h3>
-                <p>Email: info@MartManager.com</p>
-                <p>Phone: +91 12345647890</p>
+                <p><i class="fas fa-phone"></i> +91 1234567890 </p>
+                <p><i class="fas fa-envelope"></i> support@MartManager.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Store Street, Mumbai, India</p>
             </div>
+            
             <div class="footer-section">
                 <h3>Follow Us</h3>
                 <div class="social-icons">
@@ -473,9 +506,11 @@
                 </div>
             </div>
         </div>
+        
         <div class="copyright">
-            &copy; 2025 MartManager. All rights reserved.
+            &copy; 2025 MartManager Grocery Management System. All rights reserved.
         </div>
+    </footer>
     </div>
 
     <script>
@@ -507,6 +542,8 @@
         this.classList.toggle('fa-eye-slash');
     });
 </script>
+
+
 
 </body>
 </html>

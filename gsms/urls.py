@@ -47,5 +47,9 @@ urlpatterns = [
     path('api/attendance/mark/', views.mark_attendance, name='mark_attendance'),
     path('api/attendance/<int:employee_id>/<int:year>/<int:month>/', views.get_monthly_attendance, name='get_monthly_attendance'),
     
+    # Supplier management URLs
+    path('api/suppliers/add/', views.add_supplier, name='add_supplier'),
+    path('api/suppliers/<int:supplier_id>/remove/', views.remove_supplier, name='remove_supplier'),
+    
     # Add other URLs as needed
 ]

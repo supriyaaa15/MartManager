@@ -197,7 +197,7 @@ def delete_employee(request, employee_id):
 def inventory_management(request):
     categories = Category.objects.all()
     products = Product.objects.all()
-    suppliers = Supplier.objects.all()
+    suppliers = Supplier.objects.filter(is_active=True)  # Only get active suppliers
     
     return render(request, 'inventory_management.html', {
         'categories': categories,
@@ -226,7 +226,7 @@ def add_product(request):
         form = ProductForm()
     
     categories = Category.objects.all()
-    suppliers = Supplier.objects.all()
+    suppliers = Supplier.objects.filter(is_active=True)  # Only get active suppliers
     
     return render(request, 'inventory_management.html', {
         'form': form,
@@ -455,7 +455,8 @@ def get_all_products(request):
     return JsonResponse({'products': products_data})
 
 def manage_orders(request):
-    suppliers = Supplier.objects.prefetch_related('products').all()
+    # Only get active suppliers
+    suppliers = Supplier.objects.filter(is_active=True).prefetch_related('products').all()
     
     # Get pending orders with pagination
     pending_orders = Order.objects.filter(status='pending').order_by('-created_at')
@@ -471,13 +472,11 @@ def manage_orders(request):
     end_date = request.GET.get('end_date')
     
     if start_date:
-        # Convert start_date to start of day (00:00:00)
         start_datetime = timezone.datetime.strptime(start_date, '%Y-%m-%d')
         start_datetime = timezone.make_aware(start_datetime)
         completed_orders = completed_orders.filter(created_at__gte=start_datetime)
     
     if end_date:
-        # Convert end_date to end of day (23:59:59)
         end_datetime = timezone.datetime.strptime(end_date, '%Y-%m-%d')
         end_datetime = timezone.make_aware(end_datetime)
         end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
@@ -806,3 +805,103 @@ def get_monthly_attendance(request, employee_id, year, month):
         return JsonResponse({'success': False, 'message': 'Employee not found'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_supplier(request):
+    try:
+        data = request.POST
+        
+        # Validate required fields
+        required_fields = ['name', 'email', 'contact', 'address']
+        for field in required_fields:
+            if not data.get(field):
+                return JsonResponse({
+                    'success': False,
+                    'message': f'{field.title()} is required'
+                }, status=400)
+        
+        # Check if a supplier with this email exists (active or inactive)
+        existing_supplier = Supplier.objects.filter(email=data.get('email')).first()
+        
+        if existing_supplier:
+            if existing_supplier.is_active:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'A supplier with this email already exists'
+                }, status=400)
+            else:
+                # Reactivate the existing supplier with updated information
+                existing_supplier.name = data.get('name')
+                existing_supplier.contact = data.get('contact')
+                existing_supplier.address = data.get('address')
+                existing_supplier.is_active = True
+                existing_supplier.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Supplier reactivated successfully',
+                    'supplier': {
+                        'id': existing_supplier.id,
+                        'name': existing_supplier.name,
+                        'email': existing_supplier.email,
+                        'contact': existing_supplier.contact
+                    }
+                })
+        
+        # Create new supplier if no existing supplier found
+        supplier = Supplier.objects.create(
+            name=data.get('name'),
+            email=data.get('email'),
+            contact=data.get('contact'),
+            address=data.get('address'),
+            is_active=True
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Supplier added successfully',
+            'supplier': {
+                'id': supplier.id,
+                'name': supplier.name,
+                'email': supplier.email,
+                'contact': supplier.contact
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def remove_supplier(request, supplier_id):
+    try:
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        
+        # Check if any products from this supplier have stock
+        products_with_stock = Product.objects.filter(suppliers=supplier, stock__gt=0)
+        if products_with_stock.exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Cannot remove supplier. Some products still have stock.'
+            }, status=400)
+        
+        # Remove supplier from all products with zero stock
+        products_without_stock = Product.objects.filter(suppliers=supplier, stock=0)
+        for product in products_without_stock:
+            product.suppliers.remove(supplier)
+        
+        # Hard delete the supplier instead of soft delete
+        supplier.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Supplier removed successfully'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)

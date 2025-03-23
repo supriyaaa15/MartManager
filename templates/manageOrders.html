@@ -55,6 +55,9 @@
                         <div class="supplier-card">
                             <div class="supplier-header">
                                 <div class="supplier-name">{{ supplier.name }}</div>
+                                <button class="btn btn-danger remove-supplier-btn" data-supplier-id="{{ supplier.id }}" data-supplier-name="{{ supplier.name }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                             <div class="supplier-body">
                                 <div class="supplier-contact">
@@ -86,6 +89,38 @@
                             </div>
                         </div>
                         {% endfor %}
+
+                        <!-- Add New Supplier Card -->
+                        <div class="supplier-card add-supplier-card">
+                            <div class="supplier-header">
+                                <div class="supplier-name">Add New Supplier</div>
+                            </div>
+                            <div class="supplier-body">
+                                <form id="addSupplierForm" class="add-supplier-form">
+                                    <div class="form-group">
+                                        <label for="supplierName">Supplier Name</label>
+                                        <input type="text" id="supplierName" name="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="supplierEmail">Email</label>
+                                        <input type="email" id="supplierEmail" name="email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="supplierContact">Contact</label>
+                                        <input type="tel" id="supplierContact" name="contact" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="supplierAddress">Address</label>
+                                        <textarea id="supplierAddress" name="address" required></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="supplier-footer">
+                                <button class="btn btn-success" id="addSupplierBtn">
+                                    <i class="fas fa-plus"></i> Add Supplier
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -286,6 +321,24 @@
                     <input type="hidden" id="receive_order_id" name="order_id">
                     <button class="btn btn-primary" id="confirmReceiveBtn">Confirm Reception</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove Supplier Confirmation Modal -->
+    <div class="modal-backdrop" id="removeSupplierModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Remove Supplier</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <span id="removeSupplierName"></span>?</p>
+                <p>This will also remove all their products once the stock is empty.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="confirmRemoveSupplierBtn">Remove</button>
+                <button class="btn" id="cancelRemoveSupplierBtn">Cancel</button>
             </div>
         </div>
     </div>
@@ -831,7 +884,172 @@
             }
         }, duration);
     }
+
+    // Add Supplier Form Submission
+    document.getElementById('addSupplierBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = document.getElementById('addSupplierForm');
+        
+        // Validate form
+        const formData = new FormData(form);
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Check required fields
+        ['name', 'email', 'contact', 'address'].forEach(field => {
+            if (!formData.get(field)) {
+                isValid = false;
+                errorMessage = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+            }
+        });
+        
+        if (!isValid) {
+            showToast('error', 'Validation Error', errorMessage);
+            return;
+        }
+        
+        // Add CSRF token
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        
+        fetch('/api/suppliers/add/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', 'Success', 'Supplier added successfully');
+                form.reset();
+                // Reload the page to show the new supplier
+                window.location.reload();
+            } else {
+                showToast('error', 'Error', data.message || 'Failed to add supplier');
+            }
+        })
+        .catch(error => {
+            showToast('error', 'Error', 'Failed to add supplier');
+            console.error('Error:', error);
+        });
+    });
+
+    // Remove Supplier Modal and Functionality
+    const removeSupplierModal = document.getElementById('removeSupplierModal');
+    const removeSupplierName = document.getElementById('removeSupplierName');
+    const confirmRemoveSupplierBtn = document.getElementById('confirmRemoveSupplierBtn');
+    const cancelRemoveSupplierBtn = document.getElementById('cancelRemoveSupplierBtn');
+    let currentSupplierId = null;
+
+    // Remove Supplier Functionality
+    document.querySelectorAll('.remove-supplier-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const supplierId = this.dataset.supplierId;
+            const supplierName = this.dataset.supplierName;
+            
+            // Show modal with supplier name
+            removeSupplierName.textContent = supplierName;
+            currentSupplierId = supplierId;
+            removeSupplierModal.style.display = 'flex';
+        });
+    });
+
+    // Handle confirm remove
+    confirmRemoveSupplierBtn.addEventListener('click', function() {
+        if (currentSupplierId) {
+            fetch(`/api/suppliers/${currentSupplierId}/remove/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'Success', 'Supplier removed successfully');
+                    // Reload the page to update the supplier list
+                    window.location.reload();
+                } else {
+                    showToast('error', 'Error', data.message || 'Failed to remove supplier');
+                }
+            })
+            .catch(error => {
+                showToast('error', 'Error', 'Failed to remove supplier');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                removeSupplierModal.style.display = 'none';
+            });
+        }
+    });
+
+    // Handle cancel remove
+    cancelRemoveSupplierBtn.addEventListener('click', function() {
+        removeSupplierModal.style.display = 'none';
+    });
+
+    // Close modal if clicked outside
+    removeSupplierModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+        }
+    });
 });
 </script>
+
+<style>
+    /* Add these styles to your existing CSS */
+    .add-supplier-card .supplier-header {
+        background: var(--success);
+        color: white;
+        border-bottom: none;
+    }
+
+    .add-supplier-card .supplier-name {
+        text-align: center;
+        width: 100%;
+    }
+
+    .add-supplier-card {
+        border: 1px solid #ddd;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .add-supplier-card:hover {
+        border-color: var(--success);
+        background: rgba(76, 175, 80, 0.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-top: 1px solid #ddd;
+    }
+
+    .modal-footer .btn {
+        min-width: 100px;
+    }
+
+    #removeSupplierModal .modal {
+        max-width: 400px;
+    }
+
+    #removeSupplierModal .modal-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    #removeSupplierModal #removeSupplierName {
+        font-weight: bold;
+        color: var(--danger);
+    }
+</style>
 </body>
 </html>
