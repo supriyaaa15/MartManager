@@ -41,5 +41,11 @@ urlpatterns = [
     path('api/orders/<int:order_id>/delete/', views.delete_order, name='delete_order'),
     path('add_supplier_to_products/', views.add_supplier_to_products, name='add_supplier_to_products'),
     path('add-supplier/', views.add_supplier_view, name='add_supplier'),
+    
+    # Attendance URLs
+    path('attendance/', views.attendance, name='attendance'),
+    path('api/attendance/mark/', views.mark_attendance, name='mark_attendance'),
+    path('api/attendance/<int:employee_id>/<int:year>/<int:month>/', views.get_monthly_attendance, name='get_monthly_attendance'),
+    
     # Add other URLs as needed
 ]

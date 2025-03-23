@@ -476,7 +476,7 @@
             <span class="user-greeting">Welcome, {{ request.user.username }}</span>
             <a href="{% url 'logout' %}" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
-         </a>
+            </a>
         </div>
     </div>
 
@@ -494,9 +494,9 @@
             <a href="{% url 'register_employee' %}" class="action-btn">
                 <i class="fas fa-user-plus"></i> Register Employee
             </a>
-            <button class="action-btn" onclick="openAttendanceModal()">
-                <i class="fas fa-clipboard-check"></i> Track Attendance
-            </button>
+            <a href="{% url 'attendance' %}" class="action-btn">
+                <i class="fas fa-calendar-check"></i> Track Attendance
+            </a>
         </div>
         
         <div class="search-container">

@@ -1,15 +1,14 @@
 import os
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import resolve
 from .forms import LoginForm, RegisterUserForm
-from .models import UserLogin, Order, OrderItem
+from .models import UserLogin, Order, OrderItem, Category, Product, Supplier, Attendance
 from django.contrib.auth.decorators import user_passes_test
 from .forms import EmployeeRegistrationForm, ProductForm
-from .models import Category, Product, Supplier
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -18,6 +17,7 @@ from django.core.paginator import Paginator
 from django.db.models import F
 from decimal import Decimal
 from django.utils import timezone
+from datetime import datetime, date, timedelta
 
 # Helper function to check if user is admin
 def is_admin(user):
@@ -716,3 +716,93 @@ def get_supplier_products(request, supplier_id):
         return JsonResponse({'error': 'Supplier not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def attendance(request):
+    employees = UserLogin.objects.all()
+    # Get today's attendance for each employee
+    today = timezone.now().date()
+    for employee in employees:
+        employee.today_attendance = Attendance.objects.filter(employee=employee, date=today).first()
+    
+    context = {
+        'employees': employees
+    }
+    return render(request, 'attendance.html', context)
+
+@login_required
+def mark_attendance(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    try:
+        data = json.loads(request.body)
+        employee_id = data.get('employee_id')
+        date = data.get('date')
+        status = data.get('status')
+        
+        if not all([employee_id, date, status]):
+            return JsonResponse({'success': False, 'message': 'Missing required fields'})
+        
+        employee = UserLogin.objects.get(id=employee_id)
+        attendance_date = datetime.strptime(date, '%Y-%m-%d').date()
+        
+        # Update or create attendance record
+        attendance, created = Attendance.objects.update_or_create(
+            employee=employee,
+            date=attendance_date,
+            defaults={'status': status}
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Attendance marked as {status} for {employee.username}'
+        })
+        
+    except UserLogin.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Employee not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required
+def get_monthly_attendance(request, employee_id, year, month):
+    try:
+        employee = UserLogin.objects.get(id=employee_id)
+        
+        # Get all attendance records for the specified month
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            end_date = date(year, month + 1, 1) - timedelta(days=1)
+        
+        attendance_records = Attendance.objects.filter(
+            employee=employee,
+            date__range=[start_date, end_date]
+        )
+        
+        # Create attendance dictionary
+        attendance_dict = {}
+        present_count = 0
+        absent_count = 0
+        
+        for record in attendance_records:
+            attendance_dict[record.date.day] = record.status
+            if record.status == 'present':
+                present_count += 1
+            else:
+                absent_count += 1
+        
+        return JsonResponse({
+            'success': True,
+            'attendance': attendance_dict,
+            'summary': {
+                'present': present_count,
+                'absent': absent_count
+            }
+        })
+        
+    except UserLogin.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Employee not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

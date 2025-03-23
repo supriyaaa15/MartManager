@@ -1,0 +1,16 @@
+.attendance-btn {
+    background-color: #4a90e2;
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.attendance-btn:hover {
+    background-color: #357abd;
+    transform: translateY(-1px);
+} 

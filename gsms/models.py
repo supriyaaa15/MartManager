@@ -115,3 +115,17 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return f"{self.product.name} - {self.quantity} units"
+
+class Attendance(models.Model):
+    employee = models.ForeignKey(UserLogin, on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField()
+    status = models.CharField(max_length=10, choices=[('present', 'Present'), ('absent', 'Absent')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['employee', 'date']  # Ensure one attendance record per employee per day
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.employee.username} - {self.date} - {self.status}"
