@@ -1,0 +1,413 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Check - MartManager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #1b5e20;
+            --background-color: #e8f5e9;
+            --text-color: #333;
+            --white: #fff;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .nav-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-greeting {
+            font-weight: 500;
+        }
+
+        .dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--accent-color);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .dashboard-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        .filters {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .products-container {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .products-table th {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .products-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 0.25rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .total-price {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .pagination a {
+            text-decoration: none;
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .pagination a:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .pagination .current {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-shopping-cart"></i>
+            <span>MartManager</span>
+        </div>
+        <div class="nav-info">
+            <a href="{% url 'employee_dashboard' %}" class="dashboard-btn">
+                <i class="fas fa-bars"></i> Dashboard
+            </a>
+            <span>{{ request.user.username }}</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-title">
+            <h1>Price Check</h1>
+            <p>Calculate product prices for different quantities</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.category_id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="search-input">Search by Name or ID</label>
+                    <input type="text" id="search-input" placeholder="Enter product name or ID">
+                </div>
+            </div>
+        </div>
+
+        <div class="products-container">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody id="products-tbody">
+                    {% if products %}
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category.name }}</td>
+                            <td>₹{{ product.price }}</td>
+                            <td>
+                                <input type="number" 
+                                       class="quantity-input" 
+                                       data-product-id="{{ product.id }}"
+                                       data-unit-price="{{ product.price }}"
+                                       min="1" 
+                                       value="1"
+                                       onchange="updatePrice(this)">
+                            </td>
+                            <td class="total-price">₹{{ product.price }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                No products found matching your criteria
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if products.has_other_pages %}
+        <div class="pagination">
+            {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}">&laquo;</a>
+            {% endif %}
+
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                    <a class="current" href="#">{{ num }}</a>
+                {% else %}
+                    <a href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}">&raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const allProducts = {{ all_products_json|safe }};
+        const itemsPerPage = {{ items_per_page }};
+        let currentPage = 1;
+        let filteredProducts = [...allProducts];
+
+        function updatePrice(input) {
+            const quantity = parseInt(input.value) || 0;
+            const unitPrice = parseFloat(input.dataset.unitPrice);
+            const totalPrice = (quantity * unitPrice).toFixed(2);
+            input.closest('tr').querySelector('.total-price').textContent = `₹${totalPrice}`;
+        }
+
+        function filterProducts() {
+            const categoryId = document.getElementById('category-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            filteredProducts = allProducts.filter(product => {
+                const matchesCategory = !categoryId || product.category.id === parseInt(categoryId);
+                const matchesSearch = !searchTerm || 
+                                    product.name.toLowerCase().includes(searchTerm) || 
+                                    product.id.toString().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+
+            currentPage = 1;
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageProducts = filteredProducts.slice(start, end);
+
+            const tbody = document.getElementById('products-tbody');
+            if (pageProducts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            No products found matching your criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = pageProducts.map(product => `
+                <tr>
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.category.name}</td>
+                    <td>₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" 
+                               class="quantity-input" 
+                               data-product-id="${product.id}"
+                               data-unit-price="${product.price}"
+                               min="1" 
+                               value="1"
+                               onchange="updatePrice(this)">
+                    </td>
+                    <td class="total-price">₹${product.price.toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            const paginationContainer = document.querySelector('.pagination');
+
+            if (totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            let paginationHTML = '';
+            if (currentPage > 1) {
+                paginationHTML += `<a href="#" onclick="changePage(${currentPage - 1})">&laquo;</a>`;
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<a class="current" href="#">${i}</a>`;
+                } else {
+                    paginationHTML += `<a href="#" onclick="changePage(${i})">${i}</a>`;
+                }
+            }
+
+            if (currentPage < totalPages) {
+                paginationHTML += `<a href="#" onclick="changePage(${currentPage + 1})">&raquo;</a>`;
+            }
+
+            paginationContainer.innerHTML = paginationHTML;
+            paginationContainer.style.display = 'flex';
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderProducts();
+        }
+
+        // Event listeners
+        document.getElementById('category-filter').addEventListener('change', filterProducts);
+        document.getElementById('search-input').addEventListener('input', filterProducts);
+
+        // Initial render
+        renderProducts();
+    </script>
+</body>
+</html> 

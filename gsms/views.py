@@ -1037,9 +1037,35 @@ def view_transaction(request, transaction_id):
 @login_required
 def price_check(request):
     """
-    View for checking product prices
+    View for checking product prices with different quantities
     """
-    return render(request, 'price_check.html')
+    categories = Category.objects.all()
+    all_products = Product.objects.all()
+    
+    # Convert all products to a list of dictionaries for JSON serialization
+    products_data = [{
+        'id': product.id,
+        'name': product.name,
+        'category': {
+            'id': product.category.category_id,
+            'name': product.category.name
+        },
+        'price': float(product.price),
+    } for product in all_products]
+    
+    # Paginate the initial view
+    paginator = Paginator(all_products, 10)
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
+    
+    context = {
+        'categories': categories,
+        'products': products,
+        'all_products_json': json.dumps(products_data),
+        'items_per_page': 10
+    }
+    
+    return render(request, 'price_check.html', context)
 
 @login_required
 def void_item(request):
