@@ -1,0 +1,699 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MartManager - Employee Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #1b5e20;
+            --background-color: #e8f5e9;
+            --text-color: #333;
+            --white: #fff;
+            --danger: #f44336;
+            --danger-dark: #d32f2f;
+            --warning: #ff9800;
+            --success: #4caf50;
+            --info: #2196f3;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .nav-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-greeting {
+            margin-right: 15px;
+            font-weight: 500;
+        }
+
+        .terminal-info {
+            background-color: var(--accent-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .date-time {
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .logout-btn {
+            background-color: var(--danger);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--danger-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 2rem;
+            min-height: calc(100vh - 160px);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            position: relative;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Main Action Cards */
+        .main-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text-color);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            min-height: 250px;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-card.primary {
+            grid-column: 1 / span 2;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: var(--white);
+        }
+
+        .action-card.primary .card-icon,
+        .action-card.primary .card-title,
+        .action-card.primary .card-text {
+            color: var(--white);
+        }
+
+        .card-icon {
+            padding: 2rem;
+            color: var(--primary-color);
+        }
+
+        .action-card.primary .card-icon {
+            font-size: 4rem;
+            padding: 1.5rem;
+        }
+
+        .card-icon i {
+            font-size: 3rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .action-card.primary .card-text {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Secondary Sections */
+        .secondary-sections {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 0.75rem 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-body {
+            padding: 1.5rem;
+        }
+
+        /* Recent Transactions Table */
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transactions-table th,
+        .transactions-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transactions-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .transactions-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .view-btn {
+            background-color: var(--info);
+            color: var(--white);
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .view-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Daily Summary */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-box {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .quick-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 6px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .quick-btn i {
+            font-size: 1.2rem;
+        }
+
+        .quick-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .quick-btn.danger {
+            color: var(--danger);
+        }
+
+        .quick-btn.warning {
+            color: var(--warning);
+        }
+
+        .quick-btn.success {
+            color: var(--success);
+        }
+
+        /* Notices Section */
+        .notice-list {
+            list-style: none;
+        }
+
+        .notice-item {
+            padding: 0.7rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notice-item:last-child {
+            border-bottom: none;
+        }
+
+        .notice-title {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notice-date {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .notice-content {
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .notice-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            color: var(--white);
+        }
+
+        .notice-badge.important {
+            background-color: var(--danger);
+        }
+
+        .notice-badge.announcement {
+            background-color: var(--info);
+        }
+
+        .notice-badge.promo {
+            background-color: var(--warning);
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            margin: 0 10px;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: #a5d6a7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .main-actions,
+            .secondary-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-card.primary {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .logo {
+                margin-bottom: 1rem;
+            }
+            
+            .nav-info {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-shopping-cart"></i>
+            <span>MartManager</span>
+        </div>
+        <div class="nav-info">
+            <span class="terminal-info">Terminal #3</span>
+            <div class="date-time">
+                <span id="current-date">Sunday, March 23, 2025</span>
+                <span id="current-time">02:45 PM</span>
+            </div>
+            <span class="user-greeting">Welcome, {{ request.user.username }}</span>
+            <a href="{% url 'logout' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1>Employee Dashboard</h1>
+            <p>Cashier & Customer Service Portal</p>
+        </div>
+        
+        <!-- Main Action Cards -->
+        <div class="main-actions">
+            <a href="{% url 'new_sale' %}" class="action-card primary">
+                <div class="card-icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">New Sale</h3>
+                    <p class="card-text">Start a new customer transaction</p>
+                </div>
+            </a>
+            
+            <a href="{% url 'product_lookup' %}" class="action-card">
+                <div class="card-icon">
+                    <i class="fas fa-barcode"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">Product Lookup</h3>
+                    <p class="card-text">Check prices and availability of products</p>
+                </div>
+            </a>
+            
+            <a href="{% url 'recent_transactions' %}" class="action-card">
+                <div class="card-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">Recent Transactions</h3>
+                    <p class="card-text">View and manage your recent sales</p>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Secondary Sections -->
+        <div class="secondary-sections">
+            <!-- Recent Transactions Section -->
+            <div>
+                <div class="section-card">
+                    <div class="section-header">
+                        <span>Recent Transactions</span>
+                        <a href="{% url 'all_transactions' %}" class="view-btn">View All</a>
+                    </div>
+                    <div class="section-body">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt #</th>
+                                    <th>Time</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.receipt_number }}</td>
+                                    <td>{{ transaction.timestamp }}</td>
+                                    <td>{{ transaction.items_count }}</td>
+                                    <td>₹{{ transaction.total }}</td>
+                                    <td>
+                                        <a href="{% url 'view_transaction' transaction.id %}" class="view-btn">View</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center;">No recent transactions</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <span>Quick Actions</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="quick-actions">
+                            <a href="{% url 'price_check' %}" class="quick-btn success">
+                                <i class="fas fa-tag"></i>
+                                <span>Price Check</span>
+                            </a>
+                            <a href="{% url 'daily_offers' %}" class="quick-btn warning">
+                                <i class="fas fa-percent"></i>
+                                <span>Today's Offers</span>
+                            </a>
+                            <a href="{% url 'call_manager' %}" class="quick-btn">
+                                <i class="fas fa-headset"></i>
+                                <span>Call Manager</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div>
+                <!-- Daily Summary -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <span>Today's Summary</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="summary-stats">
+                            <div class="stat-box">
+                                <div class="stat-number">{{ today_sales_count }}</div>
+                                <div class="stat-label">Transactions</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">₹{{ today_sales_amount }}</div>
+                                <div class="stat-label">Total Sales</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">{{ average_items }}</div>
+                                <div class="stat-label">Avg. Items/Sale</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number">{{ customer_count }}</div>
+                                <div class="stat-label">Customers Served</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notices & Announcements -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <span>Notices & Announcements</span>
+                    </div>
+                    <div class="section-body">
+                        <ul class="notice-list">
+                            <li class="notice-item">
+                                <div class="notice-title">
+                                    <span class="notice-badge important">Important</span>
+                                    <span>Inventory Update</span>
+                                </div>
+                                <div class="notice-date">Today, 10:30 AM</div>
+                                <div class="notice-content">Fresh produce restock completed. Apples now on discount.</div>
+                            </li>
+                            <li class="notice-item">
+                                <div class="notice-title">
+                                    <span class="notice-badge promo">Promotion</span>
+                                    <span>Weekend Special</span>
+                                </div>
+                                <div class="notice-date">Yesterday, 09:15 AM</div>
+                                <div class="notice-content">Buy one get one free on all dairy products this weekend.</div>
+                            </li>
+                            <li class="notice-item">
+                                <div class="notice-title">
+                                    <span class="notice-badge announcement">Announcement</span>
+                                    <span>Staff Meeting</span>
+                                </div>
+                                <div class="notice-date">March 22, 2025</div>
+                                <div class="notice-content">Staff meeting scheduled for March 25 at 9 AM.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="copyright">
+                &copy; 2025 MartManager Grocery Management System
+            </div>
+            <div class="footer-links">
+                <a href="{% url 'help' %}">Help</a>
+                <a href="{% url 'support' %}">Support</a>
+                <a href="{% url 'employee_handbook' %}">Employee Handbook</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Date/Time -->
+    <script>
+        // Function to update current date and time
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Format date
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+            
+            // Format time
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Update initially and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+</html>

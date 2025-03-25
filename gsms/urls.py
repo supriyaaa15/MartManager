@@ -17,6 +17,11 @@ urlpatterns = [
     path('logout/', views.logout_user, name='logout'),
     path('register/', views.register_user, name='register_user'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('employee-dashboard/', views.employee_dashboard, name='employee_dashboard'),
+    path('new-sale/', views.new_sale, name='new_sale'),
+    path('customer-management/', views.customer_management, name='customer_management'),
+    path('product-lookup/', views.product_lookup, name='product_lookup'),
+    path('all-transactions/', views.all_transactions, name='all_transactions'),
     path('users/', views.user_list, name='user_list'),
     path('employees/', views.employees, name='employees'),
     path('register-employee/', views.register_employee, name='register_employee'),
@@ -52,4 +57,13 @@ urlpatterns = [
     path('api/suppliers/<int:supplier_id>/remove/', views.remove_supplier, name='remove_supplier'),
     
     # Add other URLs as needed
+    path('view-transaction/<int:transaction_id>/', views.view_transaction, name='view_transaction'),
+    path('price-check/', views.price_check, name='price_check'),
+    path('void-item/', views.void_item, name='void_item'),
+    path('daily-offers/', views.daily_offers, name='daily_offers'),
+    path('call-manager/', views.call_manager, name='call_manager'),
+    path('help/', views.help_page, name='help'),
+    path('support/', views.support_page, name='support'),
+    path('employee-handbook/', views.employee_handbook, name='employee_handbook'),
+    path('recent-transactions/', views.recent_transactions, name='recent_transactions'),
 ]

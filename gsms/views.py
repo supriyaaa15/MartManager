@@ -62,7 +62,12 @@ def login_user(request):
                     user.last_login_ip = request.META.get('REMOTE_ADDR')
                     user.failed_login_attempts = 0
                     user.save()
-                    return redirect('dashboard')
+                    
+                    # Redirect based on user role
+                    if user.role == 'Admin':
+                        return redirect('dashboard')
+                    else:  # Billing Employee
+                        return redirect('employee_dashboard')
                 else:
                     messages.error(request, "Account is inactive.")
             else:
@@ -905,3 +910,176 @@ def remove_supplier(request, supplier_id):
             'success': False,
             'message': str(e)
         }, status=400)
+
+@login_required
+def employee_dashboard(request):
+    # Get today's date
+    today = timezone.now().date()
+    
+    # Get recent transactions (last 5)
+    recent_transactions = Order.objects.filter(
+        created_at__date=today
+    ).order_by('-created_at')[:5]
+    
+    # Calculate today's statistics
+    today_sales = Order.objects.filter(created_at__date=today)
+    today_sales_count = today_sales.count()
+    today_sales_amount = sum(order.total_amount for order in today_sales)
+    
+    # Calculate average items per sale
+    if today_sales_count > 0:
+        total_items = sum(order.items.count() for order in today_sales)
+        average_items = round(total_items / today_sales_count, 1)
+    else:
+        average_items = 0
+    
+    context = {
+        'recent_transactions': recent_transactions,
+        'today_sales_count': today_sales_count,
+        'today_sales_amount': today_sales_amount,
+        'average_items': average_items,
+    }
+    
+    return render(request, 'employee_dashboard.html', context)
+
+@login_required
+def new_sale(request):
+    """
+    View for creating a new sale/transaction
+    """
+    return render(request, 'new_sale.html')
+
+@login_required
+def customer_management(request):
+    """
+    View for managing customers and loyalty points
+    """
+    return render(request, 'customer_management.html')
+
+@login_required
+def product_lookup(request):
+    """
+    View for looking up product information
+    """
+    categories = Category.objects.all()
+    products = Product.objects.all()
+    
+    context = {
+        'categories': categories,
+        'products': products
+    }
+    
+    return render(request, 'product_lookup.html', context)
+
+@login_required
+def all_transactions(request):
+    """
+    View for displaying all transactions with filtering and pagination
+    """
+    # Get all transactions ordered by date (most recent first)
+    transactions = Order.objects.all().order_by('-created_at')
+    
+    # Apply date filters if provided
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        start_datetime = timezone.datetime.strptime(start_date, '%Y-%m-%d')
+        start_datetime = timezone.make_aware(start_datetime)
+        transactions = transactions.filter(created_at__gte=start_datetime)
+    
+    if end_date:
+        end_datetime = timezone.datetime.strptime(end_date, '%Y-%m-%d')
+        end_datetime = timezone.make_aware(end_datetime)
+        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        transactions = transactions.filter(created_at__lte=end_datetime)
+    
+    # Paginate results - 20 transactions per page
+    paginator = Paginator(transactions, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'transactions': page_obj,
+        'start_date': start_date,
+        'end_date': end_date
+    }
+    
+    return render(request, 'all_transactions.html', context)
+
+@login_required
+def view_transaction(request, transaction_id):
+    """
+    View for displaying details of a specific transaction
+    """
+    transaction = get_object_or_404(Order, id=transaction_id)
+    return render(request, 'view_transaction.html', {'transaction': transaction})
+
+@login_required
+def price_check(request):
+    """
+    View for checking product prices
+    """
+    return render(request, 'price_check.html')
+
+@login_required
+def void_item(request):
+    """
+    View for voiding items from transactions
+    """
+    return render(request, 'void_item.html')
+
+@login_required
+def daily_offers(request):
+    """
+    View for displaying today's special offers
+    """
+    return render(request, 'daily_offers.html')
+
+@login_required
+def call_manager(request):
+    """
+    View for calling manager assistance
+    """
+    return render(request, 'call_manager.html')
+
+@login_required
+def help_page(request):
+    """
+    View for the help page
+    """
+    return render(request, 'help.html')
+
+@login_required
+def support_page(request):
+    """
+    View for the support page
+    """
+    return render(request, 'support.html')
+
+@login_required
+def employee_handbook(request):
+    """
+    View for the employee handbook
+    """
+    return render(request, 'employee_handbook.html')
+
+@login_required
+def recent_transactions(request):
+    """
+    View for displaying recent transactions
+    """
+    # Get today's date
+    today = timezone.now().date()
+    
+    # Get recent transactions (last 20)
+    transactions = Order.objects.filter(
+        created_at__date=today
+    ).order_by('-created_at')[:20]
+    
+    context = {
+        'transactions': transactions,
+        'today': today
+    }
+    
+    return render(request, 'recent_transactions.html', context)
