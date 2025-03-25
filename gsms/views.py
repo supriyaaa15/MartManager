@@ -962,11 +962,30 @@ def product_lookup(request):
     View for looking up product information
     """
     categories = Category.objects.all()
-    products = Product.objects.all()
+    all_products = Product.objects.all()
+    
+    # Convert all products to a list of dictionaries for JSON serialization
+    products_data = [{
+        'id': product.id,
+        'name': product.name,
+        'category': {
+            'id': product.category.category_id,
+            'name': product.category.name
+        },
+        'price': float(product.price),
+        'stock': product.stock,
+    } for product in all_products]
+    
+    # Paginate the initial view
+    paginator = Paginator(all_products, 10)
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
     
     context = {
         'categories': categories,
-        'products': products
+        'products': products,
+        'all_products_json': json.dumps(products_data),
+        'items_per_page': 10
     }
     
     return render(request, 'product_lookup.html', context)

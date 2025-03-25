@@ -41,6 +41,28 @@
             box-shadow: var(--shadow);
         }
 
+        .nav-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--accent-color);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .dashboard-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
         .main-content {
             padding: 2rem;
             max-width: 1400px;
@@ -170,6 +192,52 @@
             color: #ddd;
             margin-bottom: 1rem;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .pagination a {
+            text-decoration: none;
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .pagination a:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .pagination .current-page {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 4px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .user-greeting {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -179,15 +247,14 @@
             <span>MartManager</span>
         </div>
         <div class="nav-info">
-            <span>{{ request.user.username }}</span>
+            <span class="user-greeting">Welcome, {{ request.user.username }}</span>
+            <a href="{% url 'employee_dashboard' %}" class="dashboard-btn">
+                <i class="fas fa-bars"></i> Dashboard
+            </a>
         </div>
     </div>
 
     <div class="main-content">
-        <a href="{% url 'employee_dashboard' %}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
-
         <div class="page-title">
             <h1>Product Lookup</h1>
             <p>View all available products and their details</p>
@@ -214,7 +281,6 @@
                 <h2>Products List</h2>
             </div>
 
-            {% if products %}
             <table class="products-table">
                 <thead>
                     <tr>
@@ -226,67 +292,111 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
-                        <td>{{ product.id }}</td>
-                        <td>{{ product.name }}</td>
-                        <td>{{ product.category.name }}</td>
-                        <td>₹{{ product.price }}</td>
-                        <td>{{ product.stock }}</td>
-                        <td>
-                            {% if product.stock > 10 %}
-                            <span class="stock-badge in-stock">In Stock</span>
-                            {% elif product.stock > 0 %}
-                            <span class="stock-badge low-stock">Low Stock</span>
-                            {% else %}
-                            <span class="stock-badge out-of-stock">Out of Stock</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
+                <tbody id="productsTableBody">
+                    <!-- Products will be populated here by JavaScript -->
                 </tbody>
             </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <p>No products found</p>
+
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be populated here by JavaScript -->
             </div>
-            {% endif %}
         </div>
     </div>
 
     <script>
-        // Filter products by category
-        document.getElementById('category-filter').addEventListener('change', function() {
-            const categoryId = this.value;
-            const rows = document.querySelectorAll('.products-table tbody tr');
-            
-            rows.forEach(row => {
-                if (!categoryId || row.querySelector('td:nth-child(3)').textContent === this.options[this.selectedIndex].text) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
+        // Store all products and current state
+        const allProducts = JSON.parse('{{ all_products_json|safe }}');
+        const itemsPerPage = {{ items_per_page }};
+        let currentPage = 1;
+        let filteredProducts = [...allProducts];
 
-        // Search products by name or ID
-        document.getElementById('search-input').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.products-table tbody tr');
-            
-            rows.forEach(row => {
-                const id = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                
-                if (id.includes(searchTerm) || name.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+        // Function to get stock status
+        function getStockStatus(stock) {
+            if (stock > 10) return ['in-stock', 'In Stock'];
+            if (stock > 0) return ['low-stock', 'Low Stock'];
+            return ['out-of-stock', 'Out of Stock'];
+        }
+
+        // Function to render products table
+        function renderProducts() {
+            const tableBody = document.getElementById('productsTableBody');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedProducts = filteredProducts.slice(start, end);
+
+            tableBody.innerHTML = paginatedProducts.map(product => {
+                const [statusClass, statusText] = getStockStatus(product.stock);
+                return `
+                    <tr>
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.category.name}</td>
+                        <td>₹${product.price.toFixed(2)}</td>
+                        <td>${product.stock}</td>
+                        <td>
+                            <span class="stock-badge ${statusClass}">${statusText}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderPagination();
+        }
+
+        // Function to render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+
+            let paginationHTML = '';
+
+            if (totalPages > 1) {
+                if (currentPage > 1) {
+                    paginationHTML += `<a href="#" class="page-link" data-page="${currentPage - 1}">&laquo; Previous</a>`;
                 }
+
+                paginationHTML += `<span class="current-page">Page ${currentPage} of ${totalPages}</span>`;
+
+                if (currentPage < totalPages) {
+                    paginationHTML += `<a href="#" class="page-link" data-page="${currentPage + 1}">Next &raquo;</a>`;
+                }
+            }
+
+            pagination.innerHTML = paginationHTML;
+
+            // Add event listeners to pagination links
+            document.querySelectorAll('.page-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = parseInt(e.target.dataset.page);
+                    renderProducts();
+                });
             });
-        });
+        }
+
+        // Function to filter products
+        function filterProducts() {
+            const categoryId = document.getElementById('category-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            filteredProducts = allProducts.filter(product => {
+                const matchesCategory = !categoryId || product.category.id === parseInt(categoryId);
+                const matchesSearch = !searchTerm || 
+                    product.id.toString().includes(searchTerm) || 
+                    product.name.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+
+            currentPage = 1; // Reset to first page when filtering
+            renderProducts();
+        }
+
+        // Add event listeners
+        document.getElementById('category-filter').addEventListener('change', filterProducts);
+        document.getElementById('search-input').addEventListener('input', filterProducts);
+
+        // Initial render
+        renderProducts();
     </script>
 </body>
 </html> 
