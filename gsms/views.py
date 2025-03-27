@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import resolve
 from .forms import LoginForm, RegisterUserForm
-from .models import UserLogin, Order, OrderItem, Category, Product, Supplier, Attendance
+from .models import UserLogin, Order, OrderItem, Category, Product, Supplier, Attendance, Transaction, TransactionDetail
 from django.contrib.auth.decorators import user_passes_test
 from .forms import EmployeeRegistrationForm, ProductForm
 from django.http import JsonResponse
@@ -917,18 +917,18 @@ def employee_dashboard(request):
     today = timezone.now().date()
     
     # Get recent transactions (last 5)
-    recent_transactions = Order.objects.filter(
-        created_at__date=today
-    ).order_by('-created_at')[:5]
+    recent_transactions = Transaction.objects.filter(
+        trans_date__date=today
+    ).order_by('-trans_date')[:5]
     
     # Calculate today's statistics
-    today_sales = Order.objects.filter(created_at__date=today)
-    today_sales_count = today_sales.count()
-    today_sales_amount = sum(order.total_amount for order in today_sales)
+    today_transactions = Transaction.objects.filter(trans_date__date=today)
+    today_sales_count = today_transactions.count()
+    today_sales_amount = sum(trans.total_amt for trans in today_transactions)
     
     # Calculate average items per sale
     if today_sales_count > 0:
-        total_items = sum(order.items.count() for order in today_sales)
+        total_items = sum(trans.details.count() for trans in today_transactions)
         average_items = round(total_items / today_sales_count, 1)
     else:
         average_items = 0
@@ -947,7 +947,28 @@ def new_sale(request):
     """
     View for creating a new sale/transaction
     """
-    return render(request, 'new_sale.html')
+    # Get all products and categories
+    categories = Category.objects.all()
+    all_products = Product.objects.all()
+    
+    # Convert all products to a list of dictionaries for JSON serialization
+    products_data = [{
+        'id': product.id,
+        'name': product.name,
+        'category': {
+            'id': product.category.category_id,
+            'name': product.category.name
+        },
+        'price': float(product.price),
+        'stock': product.stock
+    } for product in all_products]
+    
+    context = {
+        'categories': categories,
+        'all_products_json': json.dumps(products_data)
+    }
+    
+    return render(request, 'new_sale.html', context)
 
 @login_required
 def customer_management(request):
@@ -1118,9 +1139,9 @@ def recent_transactions(request):
     today = timezone.now().date()
     
     # Get recent transactions (last 20)
-    transactions = Order.objects.filter(
-        created_at__date=today
-    ).order_by('-created_at')[:20]
+    transactions = Transaction.objects.filter(
+        trans_date__date=today
+    ).order_by('-trans_date')[:20]
     
     context = {
         'transactions': transactions,
@@ -1128,3 +1149,82 @@ def recent_transactions(request):
     }
     
     return render(request, 'recent_transactions.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def create_transaction(request):
+    """
+    View for creating a new transaction (sale)
+    """
+    try:
+        data = json.loads(request.body)
+        items = data.get('items', [])
+        total_amount = data.get('total_amount')
+        pay_method = data.get('pay_method', 'cash')
+        
+        if not items or total_amount is None:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing required data'
+            }, status=400)
+        
+        # Create transaction with atomic operation
+        with transaction.atomic():
+            # Create the main transaction
+            new_transaction = Transaction.objects.create(
+                user=request.user,
+                total_amt=Decimal(str(total_amount)),
+                pay_method=pay_method,
+                supplier=None,  # No supplier for sales transactions
+                user_deleted=False,
+                supplier_deleted=False
+            )
+            
+            # Create transaction details for each item
+            for item in items:
+                try:
+                    product = Product.objects.select_for_update().get(id=item['id'])
+                    quantity = int(item['quantity'])
+                    
+                    # Check if we have enough stock
+                    if product.stock < quantity:
+                        raise ValueError(f'Insufficient stock for {product.name} (Available: {product.stock})')
+                    
+                    # Create transaction detail
+                    TransactionDetail.objects.create(
+                        transaction=new_transaction,
+                        product=product,
+                        quantity=quantity,
+                        price=Decimal(str(item['price']))
+                    )
+                    
+                    # Update product stock
+                    product.stock -= quantity
+                    product.save()
+                except Product.DoesNotExist:
+                    raise ValueError(f'Product with ID {item["id"]} not found')
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Transaction created successfully',
+                'trans_id': new_transaction.trans_id
+            })
+            
+    except ValueError as e:
+        # Handle validation errors
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+    except json.JSONDecodeError:
+        # Handle invalid JSON
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        # Handle other errors
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to save transaction: {str(e)}'
+        }, status=500)

@@ -47,6 +47,9 @@ urlpatterns = [
     path('add_supplier_to_products/', views.add_supplier_to_products, name='add_supplier_to_products'),
     path('add-supplier/', views.add_supplier_view, name='add_supplier'),
     
+    # Transaction URLs
+    path('api/transactions/create/', views.create_transaction, name='create_transaction'),
+    
     # Attendance URLs
     path('attendance/', views.attendance, name='attendance'),
     path('api/attendance/mark/', views.mark_attendance, name='mark_attendance'),

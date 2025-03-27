@@ -15,6 +15,7 @@
             --text-color: #333;
             --white: #fff;
             --danger: #f44336;
+            --danger-dark: #d32f2f;
             --warning: #ff9800;
             --success: #4caf50;
             --info: #2196f3;
@@ -36,82 +37,98 @@
         }
 
         .navbar {
-            background: var(--primary-color);
-            padding: 1rem 2rem;
-            color: var(--white);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            color: var(--white);
+            box-shadow: var(--shadow);
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
             font-size: 1.5rem;
-            font-weight: 500;
+            font-weight: bold;
         }
 
         .logo i {
-            font-size: 1.5rem;
+            margin-right: 10px;
+            font-size: 1.8rem;
         }
 
         .nav-info {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 20px;
         }
 
         .user-greeting {
+            margin-right: 15px;
             font-weight: 500;
         }
 
         .dashboard-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
             background-color: var(--accent-color);
             color: var(--white);
-            text-decoration: none;
+            padding: 0.5rem 1rem;
             border-radius: 4px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: var(--transition);
         }
 
         .dashboard-btn:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
         }
-        
+
         .main-content {
             padding: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .page-title {
-            text-align: center;
             margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-title h1 {
             color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .sale-container {
             background: var(--white);
-            border-radius: 8px;
+            border-radius: 12px;
             box-shadow: var(--shadow);
             padding: 2rem;
         }
 
         .product-search {
-            margin-bottom: 2rem;
             position: relative;
+            margin-bottom: 2rem;
         }
 
         .product-search input {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .product-search input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
         }
 
         .search-results {
@@ -120,10 +137,9 @@
             left: 0;
             right: 0;
             background: var(--white);
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             box-shadow: var(--shadow);
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
@@ -134,15 +150,12 @@
         }
 
         .search-result-item {
-            padding: 0.8rem;
+            padding: 1rem;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
+            transition: var(--transition);
         }
 
         .search-result-item:hover {
@@ -150,16 +163,19 @@
         }
 
         .product-info {
-            flex-grow: 1;
+            flex: 1;
         }
 
         .product-name {
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
         }
 
         .product-details {
-            font-size: 0.9rem;
             color: #666;
+            font-size: 0.9rem;
         }
 
         .add-to-cart {
@@ -169,31 +185,33 @@
         }
 
         .quantity-input {
-            width: 60px;
-            padding: 0.4rem;
+            width: 80px;
+            padding: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 4px;
             text-align: center;
         }
 
         .add-btn {
-            padding: 0.4rem 0.8rem;
             background-color: var(--primary-color);
             color: var(--white);
             border: none;
+            padding: 0.5rem 1rem;
             border-radius: 4px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: var(--transition);
         }
 
         .add-btn:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
         }
 
         .cart-section {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 1rem;
+            margin-bottom: 2rem;
         }
 
         .cart-table {
@@ -202,44 +220,61 @@
             margin-bottom: 1rem;
         }
 
-        .cart-table th,
-        .cart-table td {
-            padding: 0.8rem;
+        .cart-table th {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            font-weight: 500;
         }
 
-        .cart-table th {
-            background-color: #f5f5f5;
-            font-weight: 600;
+        .cart-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-table tr:hover {
+            background-color: #f9f9f9;
         }
 
         .delete-btn {
-            padding: 0.4rem;
             background-color: var(--danger);
             color: var(--white);
             border: none;
+            padding: 0.5rem;
             border-radius: 4px;
             cursor: pointer;
             transition: var(--transition);
         }
 
         .delete-btn:hover {
-            opacity: 0.9;
+            background-color: var(--danger-dark);
         }
 
         .cart-summary {
             display: flex;
             justify-content: space-between;
-            padding: 1rem 0;
-            border-top: 2px solid #ddd;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 1rem;
             font-size: 1.1rem;
+        }
+
+        .cart-summary div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cart-summary strong {
+            color: var(--primary-color);
         }
 
         .action-buttons {
             display: flex;
             gap: 1rem;
-            margin-top: 2rem;
+            justify-content: flex-end;
         }
 
         .btn {
@@ -248,6 +283,9 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: var(--transition);
         }
 
@@ -256,18 +294,55 @@
             color: var(--white);
         }
 
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
         .btn-danger {
             background-color: var(--danger);
             color: var(--white);
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
             transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .cart-summary {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .search-result-item {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .add-to-cart {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
+    {% csrf_token %}
     <div class="navbar">
         <div class="logo">
             <i class="fas fa-shopping-cart"></i>
@@ -314,7 +389,10 @@
 
                 <div class="cart-summary">
                     <div>
-                        <strong>Total Items:</strong> <span id="totalItems">0</span>
+                        <strong>Items:</strong> <span id="totalItems">0</span>
+                    </div>
+                    <div>
+                        <strong>Total Quantity:</strong> <span id="totalQuantity">0</span>
                     </div>
                     <div>
                         <strong>Total Amount:</strong> ₹<span id="totalAmount">0.00</span>
@@ -336,6 +414,9 @@
     <script>
         const allProducts = {{ all_products_json|safe }};
         let cart = [];
+
+        // Get CSRF token from the meta tag
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         // Search functionality
         const searchInput = document.getElementById('searchInput');
@@ -434,10 +515,17 @@
                 </tr>
             `).join('');
 
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            // Calculate unique items (products) count
+            const uniqueItems = cart.length;
+            
+            // Calculate total quantity
+            const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            // Calculate total amount
             const totalAmount = cart.reduce((sum, item) => sum + item.subtotal, 0);
 
-            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalItems').textContent = uniqueItems;
+            document.getElementById('totalQuantity').textContent = totalQuantity;
             document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
         }
 
@@ -447,14 +535,184 @@
             updateCartDisplay();
         });
 
-        // Print bill (placeholder for now)
-        document.getElementById('printBill').addEventListener('click', function() {
+        // Print bill functionality
+        document.getElementById('printBill').addEventListener('click', async function() {
             if (cart.length === 0) {
                 alert('Cart is empty! Add items before printing bill.');
                 return;
             }
-            // We'll implement the print functionality later
-            alert('Print functionality will be implemented soon!');
+
+            try {
+                // Save transaction to database
+                const response = await fetch('/api/transactions/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        items: cart.map(item => ({
+                            id: item.id,
+                            quantity: item.quantity,
+                            price: item.price,
+                            subtotal: item.subtotal
+                        })),
+                        total_amount: cart.reduce((sum, item) => sum + item.subtotal, 0),
+                        pay_method: 'cash'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to save transaction');
+                }
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save transaction');
+                }
+
+                const transactionId = data.trans_id;
+
+                // Create a new window for the bill
+                const printWindow = window.open('', '_blank');
+                
+                // Get current date and time
+                const now = new Date();
+                const billDate = now.toLocaleDateString();
+                const billTime = now.toLocaleTimeString();
+
+                // Create bill content
+                const billContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Bill - MartManager</title>
+                        <style>
+                            body {
+                                font-family: 'Arial', sans-serif;
+                                margin: 0;
+                                padding: 20px;
+                                max-width: 800px;
+                                margin: auto;
+                            }
+                            .header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .store-name {
+                                font-size: 24px;
+                                font-weight: bold;
+                                margin-bottom: 5px;
+                            }
+                            .store-details {
+                                margin-bottom: 5px;
+                                font-size: 14px;
+                            }
+                            .bill-info {
+                                margin: 20px 0;
+                                padding: 10px 0;
+                                border-top: 1px solid #ddd;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .bill-table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 20px 0;
+                            }
+                            .bill-table th, .bill-table td {
+                                border: 1px solid #ddd;
+                                padding: 8px;
+                                text-align: left;
+                            }
+                            .bill-table th {
+                                background-color: #f5f5f5;
+                            }
+                            .summary {
+                                margin: 20px 0;
+                                text-align: right;
+                            }
+                            .footer {
+                                text-align: center;
+                                margin-top: 30px;
+                                font-style: italic;
+                            }
+                            @media print {
+                                body {
+                                    padding: 0;
+                                    margin: 0;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <div class="store-name">MartManager</div>
+                            <div class="store-details">123 Market Street, Andheri East</div>
+                            <div class="store-details">Mumbai, Maharashtra - 400069</div>
+                            <div class="store-details">Phone: +91 22 2345 6789</div>
+                        </div>
+
+                        <div class="bill-info">
+                            <div>Bill No: ${transactionId}</div>
+                            <div>Date: ${billDate}</div>
+                            <div>Time: ${billTime}</div>
+                            <div>Cashier: ${document.querySelector('.user-greeting').textContent.replace('Welcome, ', '')}</div>
+                        </div>
+
+                        <table class="bill-table">
+                            <thead>
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity</th>
+                                    <th>N/Rate</th>
+                                    <th>Total Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cart.map(item => `
+                                    <tr>
+                                        <td>${item.id}</td>
+                                        <td>${item.name}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>₹${item.price.toFixed(2)}</td>
+                                        <td>₹${item.subtotal.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <div class="summary">
+                            <div>Items: ${cart.length}</div>
+                            <div>Total Quantity: ${cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
+                            <div><strong>Total Amount: ₹${cart.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2)}</strong></div>
+                        </div>
+
+                        <div class="footer">
+                            <p>Thank you for shopping with us! :)</p>
+                            <p>Visit us again!</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                // Write the content to the new window
+                printWindow.document.write(billContent);
+                printWindow.document.close();
+
+                // Print the window after content is loaded
+                printWindow.onload = function() {
+                    printWindow.print();
+                    // Clear the cart after successful print
+                    cart = [];
+                    updateCartDisplay();
+                };
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to save transaction. Please try again.');
+            }
         });
     </script>
 </body>

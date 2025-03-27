@@ -73,7 +73,7 @@ class Transaction(models.Model):
     total_amt = models.DecimalField(max_digits=12, decimal_places=2)
     pay_method = models.CharField(max_length=50)
     user = models.ForeignKey(UserLogin, on_delete=models.CASCADE, related_name='transactions')
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='transactions')
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='transactions', null=True, blank=True)  # Made optional
     user_deleted = models.BooleanField(default=False)  # Soft delete flag for user
     supplier_deleted = models.BooleanField(default=False)  # Soft delete flag for supplier
     
