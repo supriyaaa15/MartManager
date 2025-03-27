@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import resolve
+from django.urls import resolve, reverse
 from .forms import LoginForm, RegisterUserForm
 from .models import UserLogin, Order, OrderItem, Category, Product, Supplier, Attendance, Transaction, TransactionDetail
 from django.contrib.auth.decorators import user_passes_test
@@ -913,20 +913,25 @@ def remove_supplier(request, supplier_id):
 
 @login_required
 def employee_dashboard(request):
-    # Get today's date
-    today = timezone.now().date()
+    # Get today's date in the correct timezone
+    today = timezone.localtime(timezone.now()).date()
     
-    # Get recent transactions (last 5)
+    # Get recent transactions (last 5) with correct timezone and localize their dates
     recent_transactions = Transaction.objects.filter(
         trans_date__date=today
     ).order_by('-trans_date')[:5]
     
-    # Calculate today's statistics
+    # Explicitly localize the transaction dates
+    localized_transactions = []
+    for trans in recent_transactions:
+        trans.trans_date = timezone.localtime(trans.trans_date)
+        localized_transactions.append(trans)
+    
+    # Calculate today's statistics using the correct date
     today_transactions = Transaction.objects.filter(trans_date__date=today)
     today_sales_count = today_transactions.count()
     today_sales_amount = sum(trans.total_amt for trans in today_transactions)
     
-    # Calculate average items per sale
     if today_sales_count > 0:
         total_items = sum(trans.details.count() for trans in today_transactions)
         average_items = round(total_items / today_sales_count, 1)
@@ -934,7 +939,7 @@ def employee_dashboard(request):
         average_items = 0
     
     context = {
-        'recent_transactions': recent_transactions,
+        'recent_transactions': localized_transactions,
         'today_sales_count': today_sales_count,
         'today_sales_amount': today_sales_amount,
         'average_items': average_items,
@@ -1133,22 +1138,74 @@ def employee_handbook(request):
 @login_required
 def recent_transactions(request):
     """
-    View for displaying recent transactions
+    View for displaying recent transactions with date filtering
     """
-    # Get today's date
-    today = timezone.now().date()
+    # Get date filters
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
     
-    # Get recent transactions (last 20)
-    transactions = Transaction.objects.filter(
-        trans_date__date=today
-    ).order_by('-trans_date')[:20]
+    # Base query
+    transactions = Transaction.objects.all().order_by('-trans_date')
+    
+    # Apply date filters if provided
+    if start_date:
+        start_datetime = timezone.datetime.strptime(start_date, '%Y-%m-%d')
+        start_datetime = timezone.make_aware(start_datetime)
+        transactions = transactions.filter(trans_date__date__gte=start_datetime.date())
+    
+    if end_date:
+        end_datetime = timezone.datetime.strptime(end_date, '%Y-%m-%d')
+        end_datetime = timezone.make_aware(end_datetime)
+        end_datetime = end_datetime.replace(hour=23, minute=59, second=59)
+        transactions = transactions.filter(trans_date__date__lte=end_datetime.date())
+    
+    # If no date filter is applied and we're on the dashboard, limit to 5 transactions
+    if not (start_date or end_date) and request.path == reverse('employee_dashboard'):
+        transactions = transactions[:5]
+    
+    # Localize transaction dates
+    for trans in transactions:
+        trans.trans_date = timezone.localtime(trans.trans_date)
     
     context = {
         'transactions': transactions,
-        'today': today
+        'start_date': start_date,
+        'end_date': end_date,
     }
     
     return render(request, 'recent_transactions.html', context)
+
+@login_required
+def get_transaction_details(request, transaction_id):
+    """
+    API endpoint to get transaction details
+    """
+    try:
+        trans = get_object_or_404(Transaction, trans_id=transaction_id)
+        trans_date = timezone.localtime(trans.trans_date)
+        
+        # Get all items in the transaction
+        items = []
+        for detail in trans.details.all():
+            items.append({
+                'product_name': detail.product.name,
+                'quantity': detail.quantity,
+                'price': float(detail.price),
+                'subtotal': float(detail.price * detail.quantity)
+            })
+        
+        data = {
+            'trans_id': trans.trans_id,
+            'date': trans_date.strftime('%d/%m/%Y %H:%M:%S'),
+            'cashier': trans.user.username if trans.user else 'Unknown',
+            'items': items,
+            'total_amount': float(trans.total_amt),
+            'payment_method': trans.pay_method.title()
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 @login_required
 @require_http_methods(["POST"])
@@ -1170,14 +1227,15 @@ def create_transaction(request):
         
         # Create transaction with atomic operation
         with transaction.atomic():
-            # Create the main transaction
+            # Create the main transaction with explicit timezone-aware datetime
             new_transaction = Transaction.objects.create(
                 user=request.user,
                 total_amt=Decimal(str(total_amount)),
                 pay_method=pay_method,
                 supplier=None,  # No supplier for sales transactions
                 user_deleted=False,
-                supplier_deleted=False
+                supplier_deleted=False,
+                trans_date=timezone.now()  # Explicitly set the transaction date
             )
             
             # Create transaction details for each item

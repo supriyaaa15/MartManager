@@ -68,5 +68,6 @@ urlpatterns = [
     path('help/', views.help_page, name='help'),
     path('support/', views.support_page, name='support'),
     path('employee-handbook/', views.employee_handbook, name='employee_handbook'),
-    path('recent-transactions/', views.recent_transactions, name='recent_transactions'),
+    path('transactions/', views.recent_transactions, name='recent_transactions'),
+    path('transactions/<int:transaction_id>/details/', views.get_transaction_details, name='transaction_details'),
 ]
