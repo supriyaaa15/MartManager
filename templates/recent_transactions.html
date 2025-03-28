@@ -34,7 +34,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--primary-color);
+            background: var(--gradient);
             padding: 1rem 2rem;
             color: var(--white);
             box-shadow: var(--shadow);
@@ -78,6 +78,7 @@
         .dashboard-btn:hover {
             background-color: var(--primary-color);
             transform: translateY(-2px);
+            color: var(--white);
         }
 
         .btn-primary {
@@ -105,19 +106,21 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <div class="navbar">
+    <nav class="navbar">
         <div class="logo">
             <i class="fas fa-shopping-cart"></i>
             <span>MartManager</span>
         </div>
         <div class="nav-info">
-            <span>Terminal #3</span>
             <span class="user-greeting">Welcome, {{ request.user.username }}</span>
             <a href="{% url 'employee_dashboard' %}" class="dashboard-btn">
                 <i class="fas fa-bars"></i> Dashboard
             </a>
+            <a href="{% url 'logout' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
         </div>
-    </div>
+    </nav>
 
     <!-- Main Content -->
     <main class="py-4">

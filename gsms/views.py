@@ -932,17 +932,31 @@ def employee_dashboard(request):
     today_sales_count = today_transactions.count()
     today_sales_amount = sum(trans.total_amt for trans in today_transactions)
     
-    if today_sales_count > 0:
-        total_items = sum(trans.details.count() for trans in today_transactions)
-        average_items = round(total_items / today_sales_count, 1)
-    else:
-        average_items = 0
+    # Calculate most popular item
+    most_popular_item = None
+    if today_transactions:
+        from django.db.models import Count, Sum
+        most_popular = TransactionDetail.objects.filter(
+            transaction__trans_date__date=today
+        ).values(
+            'product__name'
+        ).annotate(
+            total_quantity=Sum('quantity')
+        ).order_by('-total_quantity').first()
+        
+        if most_popular:
+            most_popular_item = {
+                'name': most_popular['product__name'],
+                'quantity': most_popular['total_quantity']
+            }
+        else:
+            most_popular_item = {'name': 'No sales', 'quantity': 0}
     
     context = {
         'recent_transactions': localized_transactions,
         'today_sales_count': today_sales_count,
         'today_sales_amount': today_sales_amount,
-        'average_items': average_items,
+        'most_popular_item': most_popular_item,
     }
     
     return render(request, 'employee_dashboard.html', context)

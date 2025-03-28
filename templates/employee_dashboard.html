@@ -237,6 +237,13 @@
             font-weight: 700;
         }
 
+        .stat-card .quantity {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
         .transactions-card {
             background: var(--white);
             border-radius: 15px;
@@ -360,7 +367,7 @@
             <span>MartManager</span>
         </div>
         <div class="nav-info">
-            <span>Terminal #3</span>
+            
             <span class="user-greeting">Welcome, {{ request.user.username }}</span>
             <a href="{% url 'logout' %}" class="btn-primary">
                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -400,8 +407,9 @@
                 <h2>₹{{ today_sales_amount }}</h2>
             </div>
             <div class="stat-card">
-                <h5>Average Items/Sale</h5>
-                <h2>{{ average_items }}</h2>
+                <h5>Most Popular Item</h5>
+                <h2>{{ most_popular_item.name|truncatechars:15 }}</h2>
+                <p class="quantity">Sold: {{ most_popular_item.quantity }}</p>
             </div>
         </div>
 
