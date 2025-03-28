@@ -27,18 +27,22 @@
 
         /* Animated Heading */
         header {
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         h1 {
             color: #2E8B57;
-            font-size: 36px;
+            font-size: 52px; /* Increased from 36px */
+            font-weight: bold;
+            letter-spacing: -1px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
             animation: fadeIn 2s ease-in-out;
         }
 
         p {
             color: #388e3c;
-            font-size: 20px;
+            font-size: 24px; /* Slightly increased for proportion */
+            margin-top: 10px;
         }
 
         @keyframes fadeIn {
@@ -50,54 +54,64 @@
         .container {
             display: flex;
             justify-content: center;
-            gap: 40px;
+            gap: 50px;
             width: 100%;
-            max-width: 900px;
+            max-width: 1200px;
         }
 
         /* Larger Cards */
         .card {
-            width: 350px;
+            width: 450px;
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 15px;
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
             text-align: center;
             cursor: pointer;
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
 
         .card:hover {
-            transform: scale(1.07);
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.3);
         }
 
         .card img {
             width: 100%;
-            height: 220px;
+            height: 350px;
             border-radius: 10px;
             object-fit: cover;
         }
 
         .card-footer {
-            padding: 15px;
+            padding: 20px;
             background: #66bb6a;
             color: white;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: bold;
             border-radius: 0 0 10px 10px;
+            margin-top: 15px;
         }
 
         /* Responsive Design */
-        @media (max-width: 800px) {
+        @media (max-width: 1000px) {
             .container {
                 flex-direction: column;
                 align-items: center;
-                gap: 20px;
+                gap: 30px;
             }
 
             .card {
-                width: 80%;
+                width: 90%;
+                max-width: 500px;
+            }
+
+            h1 {
+                font-size: 42px;
+            }
+
+            p {
+                font-size: 20px;
             }
         }
     </style>
@@ -110,16 +124,16 @@
         <p>Select your role to continue</p>
     </header>
 
-        <div class="container">
+    <div class="container">
         <!-- Admin Card -->
         <div class="card" onclick="location.href='{% url 'admin_login' %}'">
-            <img src="{% static 'admin.jpg' %}" alt="Admin" onerror="this.src='https://via.placeholder.com/350x220?text=Admin+Image'">
+            <img src="{% static 'admin_image.jpg' %}" alt="Admin" onerror="this.src='https://via.placeholder.com/450x350?text=Admin+Image'">
             <div class="card-footer">Admin</div>
         </div>
 
         <!-- Employee Card -->
         <div class="card" onclick="location.href='{% url 'employee_login' %}'">
-            <img src="{% static 'employee.jpg' %}" alt="Employee" onerror="this.src='https://via.placeholder.com/350x220?text=Employee+Image'">
+            <img src="{% static 'employee_image.jpg' %}" alt="Employee" onerror="this.src='https://via.placeholder.com/450x350?text=Employee+Image'">
             <div class="card-footer">Employee</div>
         </div>
     </div>

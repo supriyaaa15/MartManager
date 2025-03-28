@@ -18,6 +18,7 @@ from django.db.models import F
 from decimal import Decimal
 from django.utils import timezone
 from datetime import datetime, date, timedelta
+from django.db.models import Sum, Count
 
 # Helper function to check if user is admin
 def is_admin(user):
@@ -1300,3 +1301,69 @@ def create_transaction(request):
             'success': False,
             'error': f'Failed to save transaction: {str(e)}'
         }, status=500)
+
+@login_required
+def view_reports(request):
+    # Get the view type from query parameters (default to 'week')
+    view_type = request.GET.get('view_type', 'week')
+    
+    # Get current date
+    today = timezone.localtime(timezone.now()).date()
+    
+    # Calculate date range based on view type
+    if view_type == 'day':
+        start_date = today
+        end_date = today
+        title_suffix = "Today's"
+    else:  # week
+        # Get the start of the week (Monday)
+        start_date = today - timedelta(days=today.weekday())
+        # Get end of week (Sunday)
+        end_date = start_date + timedelta(days=6)
+        title_suffix = "This Week's"
+    
+    # Get transactions for the selected period
+    transactions = Transaction.objects.filter(
+        trans_date__date__gte=start_date,
+        trans_date__date__lte=end_date
+    )
+    
+    # Create a dictionary to store sales data by category
+    category_sales = {}
+    
+    # Initialize all categories with 0 sales
+    categories = Category.objects.all()
+    for category in categories:
+        category_sales[category.name] = Decimal('0.00')
+    
+    # Calculate total sales for each category
+    for transaction in transactions:
+        details = transaction.details.all()
+        for detail in details:
+            category_name = detail.product.category.name
+            # Calculate subtotal using price and quantity
+            subtotal = detail.price * detail.quantity
+            category_sales[category_name] += subtotal
+    
+    # Convert to list format for chart.js
+    labels = list(category_sales.keys())
+    data = [float(value) for value in category_sales.values()]
+    
+    # Calculate total sales
+    total_sales = sum(data)
+    
+    # Calculate percentages
+    percentages = [(value / total_sales * 100) if total_sales > 0 else 0 for value in data]
+    
+    context = {
+        'labels': labels,
+        'data': data,
+        'percentages': percentages,
+        'total_sales': total_sales,
+        'view_type': view_type,
+        'title_suffix': title_suffix,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    
+    return render(request, 'viewReports.html', context)
