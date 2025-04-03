@@ -2,7 +2,6 @@ from django.db import models
 
 # Create your models here.
 
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
@@ -16,7 +15,7 @@ class Category(models.Model):
 class Supplier(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)  # Added unique=True
+    email = models.EmailField(unique=True)  
     address = models.TextField()
     contact = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)  # For soft delete
@@ -45,7 +44,7 @@ class UserLogin(AbstractUser):
         ('Billing_Employee', 'Billing Employee'),  # Updated from just 'Employee'
     ], default='Admin')
     is_active = models.BooleanField(default=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)  # Optional additional field
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  
     last_login_ip = models.GenericIPAddressField(blank=True, null=True)  # For security tracking
     failed_login_attempts = models.IntegerField(default=0)  # For security 
     

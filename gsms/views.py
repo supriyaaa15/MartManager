@@ -990,12 +990,7 @@ def new_sale(request):
     
     return render(request, 'new_sale.html', context)
 
-@login_required
-def customer_management(request):
-    """
-    View for managing customers and loyalty points
-    """
-    return render(request, 'customer_management.html')
+
 
 @login_required
 def product_lookup(request):
@@ -1108,47 +1103,7 @@ def price_check(request):
     
     return render(request, 'price_check.html', context)
 
-@login_required
-def void_item(request):
-    """
-    View for voiding items from transactions
-    """
-    return render(request, 'void_item.html')
 
-@login_required
-def daily_offers(request):
-    """
-    View for displaying today's special offers
-    """
-    return render(request, 'daily_offers.html')
-
-@login_required
-def call_manager(request):
-    """
-    View for calling manager assistance
-    """
-    return render(request, 'call_manager.html')
-
-@login_required
-def help_page(request):
-    """
-    View for the help page
-    """
-    return render(request, 'help.html')
-
-@login_required
-def support_page(request):
-    """
-    View for the support page
-    """
-    return render(request, 'support.html')
-
-@login_required
-def employee_handbook(request):
-    """
-    View for the employee handbook
-    """
-    return render(request, 'employee_handbook.html')
 
 @login_required
 def recent_transactions(request):

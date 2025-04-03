@@ -19,7 +19,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('employee-dashboard/', views.employee_dashboard, name='employee_dashboard'),
     path('new-sale/', views.new_sale, name='new_sale'),
-    path('customer-management/', views.customer_management, name='customer_management'),
+    # path('customer-management/', views.customer_management, name='customer_management'),
     path('product-lookup/', views.product_lookup, name='product_lookup'),
     path('all-transactions/', views.all_transactions, name='all_transactions'),
     path('users/', views.user_list, name='user_list'),
@@ -44,7 +44,7 @@ urlpatterns = [
     path('api/orders/create/', views.create_order, name='create_order'),
     path('api/orders/<int:order_id>/receive/', views.mark_order_received, name='mark_order_received'),
     path('api/orders/<int:order_id>/delete/', views.delete_order, name='delete_order'),
-    path('add_supplier_to_products/', views.add_supplier_to_products, name='add_supplier_to_products'),
+    
     path('add-supplier/', views.add_supplier_view, name='add_supplier'),
     
     # Transaction URLs
@@ -62,12 +62,6 @@ urlpatterns = [
     # Add other URLs as needed
     path('view-transaction/<int:transaction_id>/', views.view_transaction, name='view_transaction'),
     path('price-check/', views.price_check, name='price_check'),
-    path('void-item/', views.void_item, name='void_item'),
-    path('daily-offers/', views.daily_offers, name='daily_offers'),
-    path('call-manager/', views.call_manager, name='call_manager'),
-    path('help/', views.help_page, name='help'),
-    path('support/', views.support_page, name='support'),
-    path('employee-handbook/', views.employee_handbook, name='employee_handbook'),
     path('transactions/', views.recent_transactions, name='recent_transactions'),
     path('transactions/<int:transaction_id>/details/', views.get_transaction_details, name='transaction_details'),
     path('reports/', views.view_reports, name='view_reports'),
