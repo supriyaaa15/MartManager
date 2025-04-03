@@ -89,7 +89,7 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     messages.success(request, "You have been logged out successfully.")
-    return redirect('login')  # Changed from 'employee_login' to 'login'
+    return redirect('login')  
 
 @user_passes_test(is_admin)  # Only admins can register new users
 def register_user(request):
@@ -97,7 +97,7 @@ def register_user(request):
         form = RegisterUserForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # Additional setup can be done here
+            
             user.save()
             messages.success(request, f"User {user.username} has been created successfully.")
             return redirect('user_list')  # Redirect to user list
@@ -118,11 +118,6 @@ def dashboard(request):
 def user_list(request):
     users = UserLogin.objects.all()
     return render(request, 'user_list.html', {'users': users})
-
-# @user_passes_test(is_admin)  # Only admins can access this page
-# def employees(request):
-#     # You can add logic here to fetch employees data
-#     return render(request, 'employees.html')
 
 @user_passes_test(is_admin)
 def employees(request):
@@ -148,21 +143,6 @@ def register_employee(request):
         form = EmployeeRegistrationForm()
     
     return render(request, 'register_employee.html', {'form': form})
-
-# @user_passes_test(is_admin)
-# def edit_employee(request, employee_id):
-#     employee = UserLogin.objects.get(id=employee_id)
-    
-#     if request.method == 'POST':
-#         form = EmployeeRegistrationForm(request.POST, instance=employee)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, f"Employee {employee.username} updated successfully.")
-#             return redirect('employees')
-#     else:
-#         form = EmployeeRegistrationForm(instance=employee)
-    
-#     return render(request, 'edit_employee.html', {'form': form, 'employee': employee})
 
 @user_passes_test(is_admin)
 def edit_employee(request, employee_id):
