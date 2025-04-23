@@ -549,9 +549,9 @@
         <td>{{ employee.get_role_display }}</td>
         <td>{% if employee.is_active %}Active{% else %}Inactive{% endif %}</td>
         <td class="action-column">
-            <button class="btn-action btn-edit" onclick="openEditModal('EMP{{ employee.id }}')">
+            {% comment %} <button class="btn-action btn-edit" onclick="openEditModal('EMP{{ employee.id }}')">
                 <i class="fas fa-edit"></i> Edit
-            </button>
+            </button> {% endcomment %}
             <button class="btn-action btn-delete" onclick="confirmDelete('EMP{{ employee.id }}')">
                 <i class="fas fa-trash"></i> Delete
             </button>
