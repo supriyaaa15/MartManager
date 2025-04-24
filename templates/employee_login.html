@@ -193,18 +193,18 @@
                 <button type="submit" class="btn">Login</button>
             </form>
             
-            {% if selected_role != 'Admin' %}
+            {% comment %} {% if selected_role != 'Admin' %}
             <span class="toggle-link" onclick="toggleForm()">New Employee? Register Here</span>
-            {% endif %}
+            {% endif %} {% endcomment %}
         </div>
 
-        <!-- Register Form - This is just UI and doesn't actually work -->
+        {% comment %} <!-- Register Form - This is just UI and doesn't actually work -->
         <!-- For proper registration, redirect to the register_user URL -->
         <div id="register-form" class="hidden">
             <h2>Employee Register</h2>
             <p style="color: #721c24; margin-bottom: 10px;">Note: Registration must be done by an admin. Please contact your administrator.</p>
             <span class="toggle-link" onclick="toggleForm()">Back to Login</span>
-        </div>
+        </div> {% endcomment %}
     </div>
 
     <script>
